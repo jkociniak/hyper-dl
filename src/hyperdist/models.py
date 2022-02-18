@@ -22,7 +22,7 @@ class EuclideanFFNModel(nn.Module):
         self.ffn = EuclideanFFN(hidden_dims[0], hidden_dims[1:], 1, activations)
 
     def forward(self, x1, x2):
-        x = torch.concat((x1, x2), dim=1)
+        x = torch.cat((x1, x2), dim=1)
         x = self.concat_layer(x)
         x = self.ffn(x)
         x = x.squeeze()
