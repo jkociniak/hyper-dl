@@ -1,0 +1,40 @@
+epochs: 300
+
+dataset_params:
+    n_samples: 1.0e+4  # it will be divided in 70:20:10 ratio
+    dim: 2
+    eps: 1.0e-2
+    bs: 256
+
+model:
+    name: EncoderHeadModel
+    encoder:
+        name: EuclideanFFNEncoder
+        io_dim: 2
+        clipping_r: 9
+        hidden_dims: [128, 256, 256, 128]
+        activations: relu
+        batch_norm: True
+    head:
+        name: EuclideanFFN
+        input_dim: 2
+        hidden_dims: [64, 64]
+        activations: relu
+        output_dim: 1
+        batch_norm: True
+
+optimizer:
+    name: SGD
+    lr: 0.01
+    momentum: 0.9
+
+scheduler:
+    name: None
+
+metrics:
+    loss: MSE
+    additional: [MAPE]
+
+neptune:
+    project: jkociniak/hyperbolic-dist-pred
+    api_token: eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiIxMmVmNjk0Yi1hMmZjLTQ3NmYtODBkZi1mZmM2NDMwNTk1ZTcifQ==

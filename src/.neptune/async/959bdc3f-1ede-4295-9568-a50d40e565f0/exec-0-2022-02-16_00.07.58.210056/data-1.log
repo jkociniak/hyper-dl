@@ -1,0 +1,42 @@
+{"obj": {"type": "AssignString", "path": ["sys", "name"], "value": "Untitled"}, "version": 1}
+{"obj": {"type": "AssignString", "path": ["sys", "description"], "value": ""}, "version": 2}
+{"obj": {"type": "AssignString", "path": ["sys", "hostname"], "value": "DESKTOP-3318E9E"}, "version": 3}
+{"obj": {"type": "AssignBool", "path": ["sys", "failed"], "value": false}, "version": 4}
+{"obj": {"type": "ClearStringLog", "path": ["monitoring", "stdout"]}, "version": 5}
+{"obj": {"type": "ClearStringLog", "path": ["monitoring", "stderr"]}, "version": 6}
+{"obj": {"type": "AssignString", "path": ["source_code", "entrypoint"], "value": "train_hyperdist.py"}, "version": 7}
+{"obj": {"type": "UploadFileSet", "path": ["source_code", "files"], "file_globs": ["/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/train_hyperdist.py"], "reset": "False"}, "version": 8}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "Info (NVML): NVML Shared Library Not Found. GPU usage metrics may not be reported. For more information, see https://docs.neptune.ai/you-should-know/what-can-you-log-and-display#hardware-consumption\n", "step": null, "ts": 1644966478.9320447}]}, "version": 9}
+{"obj": {"type": "ConfigFloatSeries", "path": ["monitoring", "cpu"], "min": 0.0, "max": 100.0, "unit": "%"}, "version": 10}
+{"obj": {"type": "ClearFloatLog", "path": ["monitoring", "cpu"]}, "version": 11}
+{"obj": {"type": "ConfigFloatSeries", "path": ["monitoring", "memory"], "min": 0.0, "max": 12.391899108886719, "unit": "GB"}, "version": 12}
+{"obj": {"type": "ClearFloatLog", "path": ["monitoring", "memory"]}, "version": 13}
+{"obj": {"type": "LogFloats", "path": ["monitoring", "cpu"], "values": [{"value": 20.9, "step": null, "ts": 1644966478.9392302}]}, "version": 14}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "traceback"], "values": [{"value": "An uncaught exception occurred while run was active on worker DESKTOP-3318E9E.", "step": null, "ts": 1644966478.9603987}, {"value": "Marking run as failed", "step": null, "ts": 1644966478.9603987}, {"value": "Traceback:", "step": null, "ts": 1644966478.9603987}, {"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/train_hyperdist.py\", line 23, in <module>\n    run_training(temp_config)\n", "step": null, "ts": 1644966478.9603987}, {"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 18, in run_training\n    str_config = convert_to_strings(config)\n", "step": null, "ts": 1644966478.9603987}, {"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 35, in convert_to_strings\n    res[k] = convert_to_strings(d)\n", "step": null, "ts": 1644966478.9603987}, {"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 35, in convert_to_strings\n    res[k] = convert_to_strings(d)\n", "step": null, "ts": 1644966478.9603987}, {"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 35, in convert_to_strings\n    res[k] = convert_to_strings(d)\n", "step": null, "ts": 1644966478.9603987}, {"value": "  [Previous line repeated 2993 more times]\n", "step": null, "ts": 1644966478.9603987}, {"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 37, in convert_to_strings\n    res[k] = str(v)\n", "step": null, "ts": 1644966478.9603987}]}, "version": 15}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "traceback"], "values": [{"value": "maximum recursion depth exceeded while getting the str of an object", "step": null, "ts": 1644966478.9603987}]}, "version": 16}
+{"obj": {"type": "LogFloats", "path": ["monitoring", "memory"], "values": [{"value": 0.4946632385253906, "step": null, "ts": 1644966478.9392302}]}, "version": 17}
+{"obj": {"type": "AssignBool", "path": ["sys", "failed"], "value": true}, "version": 18}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "Traceback (most recent call last):\n", "step": null, "ts": 1644966478.9653785}]}, "version": 19}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 35, in convert_to_strings\n", "step": null, "ts": 1644966478.966775}]}, "version": 20}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "    ", "step": null, "ts": 1644966478.9712248}]}, "version": 21}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "res[k] = convert_to_strings(d)", "step": null, "ts": 1644966478.9724908}]}, "version": 22}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "\n", "step": null, "ts": 1644966478.973723}]}, "version": 23}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 35, in convert_to_strings\n", "step": null, "ts": 1644966478.974978}]}, "version": 24}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "    ", "step": null, "ts": 1644966478.9795218}]}, "version": 25}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "res[k] = convert_to_strings(d)", "step": null, "ts": 1644966478.9808774}]}, "version": 26}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "\n", "step": null, "ts": 1644966478.9821866}]}, "version": 27}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 35, in convert_to_strings\n", "step": null, "ts": 1644966478.9835055}]}, "version": 28}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "    ", "step": null, "ts": 1644966478.9885545}]}, "version": 29}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "res[k] = convert_to_strings(d)", "step": null, "ts": 1644966478.9902904}]}, "version": 30}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "\n", "step": null, "ts": 1644966478.9914265}]}, "version": 31}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "  [Previous line repeated 996 more times]\n", "step": null, "ts": 1644966478.9926457}]}, "version": 32}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "  File \"/mnt/c/Users/janko/PycharmProjects/hyperbolic/src/hyperdist/config.py\", line 37, in convert_to_strings\n", "step": null, "ts": 1644966478.9937913}]}, "version": 33}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "    ", "step": null, "ts": 1644966478.9987292}]}, "version": 34}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "res[k] = str(v)", "step": null, "ts": 1644966479.0001955}]}, "version": 35}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "\n", "step": null, "ts": 1644966479.001958}]}, "version": 36}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "RecursionError", "step": null, "ts": 1644966479.0032516}]}, "version": 37}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": ": ", "step": null, "ts": 1644966479.0044353}]}, "version": 38}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "maximum recursion depth exceeded while getting the str of an object", "step": null, "ts": 1644966479.0056193}]}, "version": 39}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stderr"], "values": [{"value": "\n", "step": null, "ts": 1644966479.006726}]}, "version": 40}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stdout"], "values": [{"value": "", "step": null, "ts": 1644966479.0079057}]}, "version": 41}
+{"obj": {"type": "LogStrings", "path": ["monitoring", "stdout"], "values": [{"value": "Shutting down background jobs, please wait a moment...\n", "step": null, "ts": 1644966479.0090954}]}, "version": 42}
