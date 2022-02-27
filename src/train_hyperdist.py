@@ -4,8 +4,8 @@ import pathlib
 import torch
 import numpy as np
 import random
-from src.config import run_training
-from src.data import build_loaders
+from config import run_training
+from data import build_loaders
 from attrdict import AttrDict
 from itertools import product
 from copy import deepcopy
