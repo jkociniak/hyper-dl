@@ -4,8 +4,8 @@ import pathlib
 import torch
 import numpy as np
 import random
-from hyperdist.config import run_training
-from hyperdist.data import build_loaders
+from src.config import run_training
+from src.data import build_loaders
 from attrdict import AttrDict
 from itertools import product
 from copy import deepcopy
@@ -18,9 +18,9 @@ with open(args.config_file, 'r') as f:
     default_config = AttrDict(yaml.load(f, Loader=yaml.Loader))
 
 depths = [5]
-widths = [64, 128, 192, 256, 320, 384, 448, 512]
-epsilons = [1.0e-2, 1.0e-3, 1.0e-4]
-results_path = f'../reports/dim2_dep5_comparison'
+widths = [64, 128, 192, 256, 320]
+epsilons = [1.0e-3, 1.0e-4]
+results_path = f'../reports/test'
 
 results = {}
 try:
