@@ -3,7 +3,6 @@ import torch.optim as optim
 from models import build_model
 from loops import train_loop
 from utils import mape
-import neptune.new as neptune
 
 def run_training(train_loader, val_loader, test_loader, config):
     model = build_model(**config.model)
@@ -12,6 +11,7 @@ def run_training(train_loader, val_loader, test_loader, config):
     scheduler = build_scheduler(optimizer, **config.scheduler)
 
     if 'neptune' in config:
+        import neptune.new as neptune
         run = neptune.init(**config.neptune)
         str_config = convert_to_strings(config)
         run['config'] = str_config
