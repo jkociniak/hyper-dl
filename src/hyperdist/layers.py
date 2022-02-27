@@ -17,12 +17,13 @@ class EuclideanFFN(nn.Sequential):
     Last layer is not followed by activation.
     Optional batch norm.
     """
-    def __init__(self, input_dim, hidden_dims, output_dim, activations='relu', batch_norm=False):
+    def __init__(self, input_dim, hidden_dims, output_dim, activations='relu', batch_norm=False, skips=True):
         self.input_dim = input_dim
         self.hidden_dims = hidden_dims
         self.output_dim = output_dim
         self.activation = activations
         self.batch_norm = batch_norm
+        self.skips = skips
 
         layers = self.build_layers()
         super().__init__(layers)

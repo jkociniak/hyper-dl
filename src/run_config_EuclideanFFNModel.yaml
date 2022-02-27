@@ -1,9 +1,10 @@
 epochs: 200
+seed: 777
 
 dataset_params:
     n_samples: 1.0e+5  # it will be divided in 70:20:10 ratio
     dim: 2
-    eps: 1.0e-2
+    eps: 1.0e-3
     bs: 256
 
 model:
@@ -11,15 +12,16 @@ model:
     input_dim: 2
     hidden_dims: [128, 256, 256, 128, 64, 64]
     activations: relu
+    batch_norm: False
 
 optimizer:
     name: SGD
-    lr: 0.01
+    lr: 0.001
     momentum: 0.9
 
 scheduler:
     name: ReduceLROnPlateau
-    factor: 0.9
+    factor: 0.75
     verbose: True
     eps: 1.0e-7
 

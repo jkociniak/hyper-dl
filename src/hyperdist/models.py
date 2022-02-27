@@ -16,10 +16,10 @@ def build_model(name, **kwargs):
 
 
 class EuclideanFFNModel(nn.Module):
-    def __init__(self, input_dim, hidden_dims, activations):
+    def __init__(self, input_dim, hidden_dims, activations, batch_norm=True, skips=True, **kwargs):
         super().__init__()
         self.concat_layer = nn.Linear(2 * input_dim, hidden_dims[0])
-        self.ffn = EuclideanFFN(hidden_dims[0], hidden_dims[1:], 1, activations)
+        self.ffn = EuclideanFFN(hidden_dims[0], hidden_dims[1:], 1, activations, batch_norm, skips)
 
     def forward(self, x1, x2):
         x = torch.cat((x1, x2), dim=1)

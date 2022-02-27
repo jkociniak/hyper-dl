@@ -25,10 +25,10 @@ def build_loaders(n_samples, dim, eps, bs):
 
 
 def build_dataloader(name, dataset, bs):
-    if name == 'test':
-        return DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4)
+    if name == 'train':
+        return DataLoader(dataset, batch_size=bs, shuffle=True, num_workers=0)
     else:
-        return DataLoader(dataset, batch_size=bs, shuffle=True, num_workers=4)
+        return DataLoader(dataset, batch_size=bs, shuffle=False, num_workers=0)
 
 
 class HyperbolicPairsDataset(Dataset):

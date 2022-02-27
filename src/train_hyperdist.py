@@ -1,7 +1,11 @@
 import argparse
 import yaml
 import pathlib
+import torch
+import numpy as np
+import random
 from hyperdist.config import run_training
+from hyperdist.data import build_loaders
 from attrdict import AttrDict
 from itertools import product
 from copy import deepcopy
@@ -11,23 +15,38 @@ parser = argparse.ArgumentParser(description='Train hyperbolic distance predicti
 parser.add_argument('config_file', help='path to the configuration file', type=pathlib.Path)
 args = parser.parse_args()
 with open(args.config_file, 'r') as f:
-    config = AttrDict(yaml.load(f, Loader=yaml.Loader))
+    default_config = AttrDict(yaml.load(f, Loader=yaml.Loader))
 
-depths = range(1, 10)
-widths = [4, 8, 16, 32, 64, 128, 256, 512, 1024]
-ns = [1e5]
+depths = [5]
+widths = [64, 128, 192, 256, 320, 384, 448, 512]
+epsilons = [1.0e-2, 1.0e-3, 1.0e-4]
+results_path = f'../reports/dim2_dep5_comparison'
 
 results = {}
-for depth, width, n_samples in product(depths, widths, ns):
-    temp_config = deepcopy(config)
-    hidden_dims = [width] * depth
-    temp_config['model']['hidden_dims'] = hidden_dims
-    temp_config['dataset_params']['n_samples'] = n_samples
-    print(f'Running experiment with hidden_dims={hidden_dims}, n_samples={n_samples}')
-    results[depth, width, n_samples] = run_training(temp_config)
+try:
+    for eps in epsilons:
+        default_config['dataset_params']['eps'] = eps
 
-results_path = '../reports/dim2_width_depth_nsamples_grid_search_results'
-with open(results_path, 'wb') as f:
-    pickle.dump(results, f)
+        # reseed the RNGs before constructing new datasets
+        torch.manual_seed(default_config.seed)
+        random.seed(default_config.seed)
+        np.random.seed(default_config.seed)
 
-print('Finished training!')
+        loaders = build_loaders(**default_config.dataset_params)
+        for depth, width in product(depths, widths):
+            temp_config = deepcopy(default_config)
+
+            temp_config['model']['hidden_depth'] = depth
+            temp_config['model']['hidden_width'] = width
+
+            hidden_dims = [width] * depth
+            temp_config['model']['hidden_dims'] = hidden_dims
+
+            print(f'Running experiment with eps={eps}, hidden_depth={depth}, hidden_width={width}')
+            results[depth, width, eps] = run_training(loaders['train'],
+                                                      loaders['val'],
+                                                      loaders['test'],
+                                                      temp_config)
+finally:  # save the partial results even if program crashes or is stopped
+    with open(results_path, 'wb') as f:
+        pickle.dump(results, f)

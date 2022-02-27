@@ -2,85 +2,93 @@ import torch
 from collections import defaultdict
 
 
-def train_loop(run, epochs, model, criterion, metrics_dict, optimizer, scheduler, train_loader, val_loader):
+def train_loop(run, epochs, model, criterion, metrics, optimizer, scheduler, train_loader, val_loader, test_loader):
     device = 'gpu:0' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device)
     model.to(device)
-    last_val_metrics = None
 
     for epoch in range(epochs):
-        train_loss, train_metrics = train(model, criterion, metrics_dict, optimizer, train_loader, device)
-        run['metrics/train/loss'].log(train_loss)
-        for metric_name, metric_val in train_metrics.items():
-            run[f'metrics/train/{metric_name}'].log(metric_val)
-        print(f'[{epoch + 1}] train loss: {train_loss}')
+        train_loss, train_metrics = train(run, model, criterion, metrics, optimizer, train_loader, device)
+        print(f'[{epoch + 1}] train loss (mean of batch losses): {train_loss}')
 
-        val_loss, val_metrics = evaluate(model, criterion, metrics_dict, val_loader, device)
-        run['metrics/val/loss'].log(val_loss)
-        for metric_name, metric_val in val_metrics.items():
-            run[f'metrics/val/{metric_name}'].log(metric_val)
+        val_loss, val_metrics = evaluate(run, model, criterion, metrics, val_loader, device, 'val')
         print(f'[{epoch + 1}] val loss: {val_loss}')
 
         if scheduler is not None:
             scheduler.step(val_loss)
 
-        last_val_metrics = val_loss, val_metrics
-
     print('Training finished')
-    return last_val_metrics
+
+    test_loss, test_metrics = evaluate(run, model, criterion, metrics, test_loader, device, 'test')
+    print(f'test loss: {test_loss}')
+    print('Experiment finished')
+
+    return test_loss, test_metrics
 
 
-def train(model, criterion, metrics_dict, optimizer, loader, device):
+def train(run, model, criterion, metrics_dict, optimizer, loader, device):
     model.train()
 
-    losses = []
-    metrics = defaultdict(list)
+    loss = 0
+    metrics = defaultdict(float)
+    n_samples = 0
 
     for i, data in enumerate(loader):
         pairs, dist = data['pairs'], data['dist']
         x1, x2 = pairs[:, 0, :], pairs[:, 1, :]
         x1, x2 = x1.to(device), x2.to(device)
+        n_samples += x1.size(dim=0)
 
         optimizer.zero_grad()
         dist_pred = model(x1, x2)
 
-        loss = criterion(dist_pred, dist)
-        losses.append(loss)
-
-        for name, metric in metrics_dict.items():
-            metrics[name] = metric(dist_pred, dist).item()
-
-        loss.backward()
+        batch_loss = criterion(dist_pred, dist)
+        batch_loss.backward()
         optimizer.step()
 
-    loss = torch.tensor(losses).mean()
-    metrics = {metric_name: torch.tensor(metric_val).mean()
-               for metric_name, metric_val in metrics.items()}
+        batch_loss *= loader.batch_size
+        loss += batch_loss.item()
+
+        for name, metric in metrics_dict.items():
+            metrics[name] += metric(dist_pred, dist).item() * loader.batch_size
+
+    loss /= n_samples
+    metrics = {name: val / n_samples for name, val in metrics.items()}
+
+    run['metrics/train/loss'].log(loss)
+    for metric_name, metric_val in metrics.items():
+        run[f'metrics/train/{metric_name}'].log(metric_val)
 
     return loss, metrics
 
 
-def evaluate(model, criterion, metrics_dict, loader, device):
+def evaluate(run, model, criterion, metrics_dict, loader, device, set_name):
     model.eval()
 
-    losses = []
-    metrics = defaultdict(list)
+    loss = 0
+    metrics = defaultdict(float)
+    n_samples = 0
 
     with torch.no_grad():
         for i, data in enumerate(loader):
             pairs, dist = data['pairs'], data['dist']
             x1, x2 = pairs[:, 0, :], pairs[:, 1, :]
             x1, x2 = x1.to(device), x2.to(device)
+            n_samples += x1.size(dim=0)
 
             dist_pred = model(x1, x2)
 
-            loss = criterion(dist_pred, dist)
-            losses.append(loss.item())
-            for name, metric in metrics_dict.items():
-                metrics[name].append(metric(dist_pred, dist).item())
+            batch_loss = criterion(dist_pred, dist).item() * loader.batch_size
+            loss += batch_loss
 
-    loss = torch.tensor(losses).mean()
-    metrics = {metric_name: torch.tensor(metric_val).mean()
-               for metric_name, metric_val in metrics.items()}
+            for name, metric in metrics_dict.items():
+                metrics[name] += metric(dist_pred, dist).item() * loader.batch_size
+
+    loss /= n_samples
+    metrics = {name: val / n_samples for name, val in metrics.items()}
+
+    run[f'metrics/{set_name}/loss'].log(loss)
+    for metric_name, metric_val in metrics.items():
+        run[f'metrics/{set_name}/{metric_name}'].log(metric_val)
 
     return loss, metrics

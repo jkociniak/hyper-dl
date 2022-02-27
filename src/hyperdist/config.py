@@ -1,14 +1,11 @@
 import torch.nn as nn
 import torch.optim as optim
-from .data import build_loaders
 from .models import build_model
 from .loops import train_loop
 from .utils import mape
 import neptune.new as neptune
 
-def run_training(config):
-    loaders = build_loaders(**config.dataset_params)
-    train_loader, val_loader = loaders['train'], loaders['val']
+def run_training(train_loader, val_loader, test_loader, config):
     model = build_model(**config.model)
     criterion, metrics = build_metrics(**config.metrics)
     optimizer = build_optimizer(model.parameters(), **config.optimizer)
@@ -17,17 +14,18 @@ def run_training(config):
 
     str_config = convert_to_strings(config)
     run['config'] = str_config
-    last_val_metrics = train_loop(run,
-                                  config.epochs,
-                                  model,
-                                  criterion,
-                                  metrics,
-                                  optimizer,
-                                  scheduler,
-                                  train_loader,
-                                  val_loader)
+    results = train_loop(run,
+                         config.epochs,
+                         model,
+                         criterion,
+                         metrics,
+                         optimizer,
+                         scheduler,
+                         train_loader,
+                         val_loader,
+                         test_loader)
     run.stop()
-    return last_val_metrics
+    return results
 
 def convert_to_strings(d):
     res = {}
