@@ -3,7 +3,7 @@ from collections import defaultdict
 
 
 def train_loop(run, epochs, model, criterion, metrics, optimizer, scheduler, train_loader, val_loader, test_loader):
-    device = 'gpu:0' if torch.cuda.is_available() else 'cpu'
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device)
     model.to(device)
 
