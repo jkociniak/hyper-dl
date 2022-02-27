@@ -10,10 +10,14 @@ def run_training(train_loader, val_loader, test_loader, config):
     criterion, metrics = build_metrics(**config.metrics)
     optimizer = build_optimizer(model.parameters(), **config.optimizer)
     scheduler = build_scheduler(optimizer, **config.scheduler)
-    run = neptune.init(**config.neptune)
 
-    str_config = convert_to_strings(config)
-    run['config'] = str_config
+    if 'neptune' in config:
+        run = neptune.init(**config.neptune)
+        str_config = convert_to_strings(config)
+        run['config'] = str_config
+    else:
+        run = None
+
     results = train_loop(run,
                          config.epochs,
                          model,
@@ -24,7 +28,8 @@ def run_training(train_loader, val_loader, test_loader, config):
                          train_loader,
                          val_loader,
                          test_loader)
-    run.stop()
+    if run is not None:
+        run.stop()
     return results
 
 def convert_to_strings(d):

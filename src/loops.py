@@ -55,9 +55,10 @@ def train(run, model, criterion, metrics_dict, optimizer, loader, device):
     loss /= n_samples
     metrics = {name: val / n_samples for name, val in metrics.items()}
 
-    run['metrics/train/loss'].log(loss)
-    for metric_name, metric_val in metrics.items():
-        run[f'metrics/train/{metric_name}'].log(metric_val)
+    if run is not None:
+        run['metrics/train/loss'].log(loss)
+        for metric_name, metric_val in metrics.items():
+            run[f'metrics/train/{metric_name}'].log(metric_val)
 
     return loss, metrics
 
@@ -87,8 +88,9 @@ def evaluate(run, model, criterion, metrics_dict, loader, device, set_name):
     loss /= n_samples
     metrics = {name: val / n_samples for name, val in metrics.items()}
 
-    run[f'metrics/{set_name}/loss'].log(loss)
-    for metric_name, metric_val in metrics.items():
-        run[f'metrics/{set_name}/{metric_name}'].log(metric_val)
+    if run is not None:
+        run[f'metrics/{set_name}/loss'].log(loss)
+        for metric_name, metric_val in metrics.items():
+            run[f'metrics/{set_name}/{metric_name}'].log(metric_val)
 
     return loss, metrics
