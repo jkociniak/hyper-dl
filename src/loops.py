@@ -35,8 +35,8 @@ def train(run, model, criterion, metrics_dict, optimizer, loader, device):
 
     for i, data in enumerate(loader):
         pairs, dist = data['pairs'], data['dist']
+        paris, dist = pairs.to(device), dist.to(device)
         x1, x2 = pairs[:, 0, :], pairs[:, 1, :]
-        x1, x2 = x1.to(device), x2.to(device)
         n_samples += x1.size(dim=0)
 
         optimizer.zero_grad()
