@@ -20,7 +20,7 @@ with open(args.config_file, 'r') as f:
 depths = [5]
 widths = [64, 128, 192, 256, 320]
 epsilons = [1.0e-3, 1.0e-4]
-results_path = f'../reports/test'
+results_path = f'reports/test'
 
 results = {}
 try:
