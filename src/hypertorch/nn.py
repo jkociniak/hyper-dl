@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from .math import *
 
-
+# TODO add hyperbolic bias handling
 class MobiusLinear(nn.Module):
     def __init__(self, in_features, out_features):
         super().__init__()

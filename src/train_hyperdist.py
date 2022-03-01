@@ -20,7 +20,7 @@ with open(args.config_file, 'r') as f:
 depths = [5]
 widths = [768]
 dims = range(1, 14)
-results_path = f'reports/grid_dims1-14_width768'
+results_path = f'results/grid_dims1-14_width768'
 
 results = {}
 try:

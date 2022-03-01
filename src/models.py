@@ -40,6 +40,7 @@ class EuclideanFFNModel(nn.Module):
         return x
 
 
+# TODO finish
 class EncoderHeadModel(nn.Module):
     def __init__(self, input_dim, encoder, head, encoder_type, head_type, encoder_r):
         super().__init__()
