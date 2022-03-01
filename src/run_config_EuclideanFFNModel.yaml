@@ -29,6 +29,6 @@ metrics:
     loss: MSE
     additional: [MAPE]
 
-#neptune:
-#    project: jkociniak/hyperbolic-dist-pred
-#    api_token: eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiIxMmVmNjk0Yi1hMmZjLTQ3NmYtODBkZi1mZmM2NDMwNTk1ZTcifQ==
+neptune:
+    project: jkociniak/hyperbolic-dist-pred
+    api_token: eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiIxMmVmNjk0Yi1hMmZjLTQ3NmYtODBkZi1mZmM2NDMwNTk1ZTcifQ==

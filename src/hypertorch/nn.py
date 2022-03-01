@@ -4,7 +4,7 @@ from .math import *
 
 
 class MobiusLinear(nn.Module):
-    def __init__(self, in_features, out_features, bias=False):
+    def __init__(self, in_features, out_features):
         super().__init__()
         self.fc = nn.Linear(in_features, out_features, bias=False)
 
