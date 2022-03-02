@@ -23,9 +23,8 @@ class EuclideanFFN(nn.Sequential):
                  output_dim,
                  activations='relu',
                  batch_norm=False,
-                 skips=True,
+                 skips=False,
                  apply_to_last_layer=False,
-                 clipping_r=None,
                  **kwargs):
         self.input_dim = input_dim
         self.hidden_dims = hidden_dims
@@ -41,49 +40,65 @@ class EuclideanFFN(nn.Sequential):
     def get_ffn_layers(self):
         layers = OrderedDict()
 
-        label_lb = lambda i: f'LinearBlock{i}'
+        label_l = lambda i: f'Linear{i}'
+        label_ls = lambda i: f'LinearSkip{i}'
+        label_bn = lambda i: f'BatchNorm{i}'
 
         prev = self.input_dim  # start with input_dim
         for i, hidden_dim in enumerate(self.hidden_dims):
-            layers[label_lb(i)] = LinearBlock(prev, hidden_dim, self.activation, self.batch_norm, self.skips)
+            if self.skips:
+                layers[label_ls(i)] = LinearSkip(prev, hidden_dim, self.activation)
+            else:
+                layers[label_l(i)] = Linear(prev, hidden_dim, self.activation)
+
+            if self.batch_norm:
+                layers[label_bn(i)] = nn.BatchNorm1d(hidden_dim)
             prev = hidden_dim
 
         n = len(self.hidden_dims)
         if self.apply_to_last_layer:
-            layers[label_lb(n)] = LinearBlock(prev, self.output_dim, self.activation, self.batch_norm, self.skips)
+            if self.skips:
+                layers[label_ls(n)] = LinearSkip(prev, self.output_dim, self.activation)
+            else:
+                layers[label_l(n)] = Linear(prev, self.output_dim, self.activation)
+
+            if self.batch_norm:
+                layers[label_bn(n)] = nn.BatchNorm1d(self.output_dim)
         else:
-            layers[label_lb(n)] = nn.Linear(prev, self.output_dim)
+            layers[label_l(n)] = nn.Linear(prev, self.output_dim)
 
         return layers
 
 
-class LinearBlock(nn.Module):
+class Linear(nn.Module):
     """
-    Linear block followed by optional skip connection and batch norm.
-    Skip connections are applied after activation. (https://arxiv.org/pdf/1701.09175.pdf)
-    Batch norm is applied after residual connection.
+    Wrapper for nn.Linear with activation.
     """
-    def __init__(self, input_dim, output_dim, activation, batch_norm, skip):
+    def __init__(self, input_dim, output_dim, activation):
         super().__init__()
         self.fc = nn.Linear(input_dim, output_dim)
-
         if activation == 'relu':
             self.activation = nn.ReLU()
         else:
-            raise NotImplementedError(f'activation {activation} in LinearBlock is not implemented!')
+            raise NotImplementedError(f'activation {activation} in Linear is not implemented!')
 
-        if skip:
-            assert input_dim == output_dim, "Skip connection in LinearBlock requires equal input and output dimensions!"
-        self.skip = skip
+    def forward(self, x):
+        return self.activation(self.fc(x))
 
-        self.bn = nn.BatchNorm1d(num_features=output_dim) if batch_norm else None
 
+class LinearSkip(nn.Module):
+    """
+    Linear layer with skip connection after activation. (https://arxiv.org/pdf/1701.09175.pdf)
+    """
+    def __init__(self, input_dim, output_dim, activation):
+        super().__init__()
+        self.fc = nn.Linear(input_dim, output_dim)
+        if activation == 'relu':
+            self.activation = nn.ReLU()
+        else:
+            raise NotImplementedError(f'activation {activation} in LinearSkip is not implemented!')
 
     def forward(self, x):
         y = self.fc(x)
         y = self.activation(y)
-        if self.skip:
-            y = y + x
-        if self.bn is not None:
-            y = self.bn(y)
-        return y
+        return y + x

@@ -13,6 +13,7 @@ model:
     hidden_dims: [128, 256, 256, 128, 64, 64]
     activations: relu
     batch_norm: False
+    skips: False
 
 optimizer:
     name: SGD
