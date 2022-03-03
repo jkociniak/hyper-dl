@@ -11,20 +11,23 @@ from itertools import product
 from copy import deepcopy
 import pickle
 
+
 parser = argparse.ArgumentParser(description='Train hyperbolic distance prediction model.')
 parser.add_argument('config_file', help='path to the configuration file', type=pathlib.Path)
 args = parser.parse_args()
 with open(args.config_file, 'r') as f:
     default_config = AttrDict(yaml.load(f, Loader=yaml.Loader))
 
-depths = [5]
-widths = [768]
-dims = range(1, 14)
-results_path = f'results/grid_dims1-14_width768'
+# experiments grid definition
+depths = [2, 3, 4]
+widths = [320]
+dims = range(2, 14)
+results_path = f'results/grid_dims_noskips_d2-4'
 
-results = {}
+# main loop
+results = {"keys": list(product(dims, depths, widths))}
 try:
-    for dim in dims:
+    for dim in dims:  # separate loop because of different datasets
         default_config['dataset_params']['dim'] = dim
 
         # reseed the RNGs before constructing new datasets
@@ -43,11 +46,13 @@ try:
             temp_config['model']['hidden_dims'] = hidden_dims
             temp_config['model']['input_dim'] = dim
 
+            results[dim, depth, width] = {'config': temp_config}
+
             print(f'Running experiment with dim={dim}, hidden_depth={depth}, hidden_width={width}')
-            results[dim, depth, width] = run_training(loaders['train'],
-                                                      loaders['val'],
-                                                      loaders['test'],
-                                                      temp_config)
-finally:  # save the partial results even if program crashes or is stopped
+            results[dim, depth, width]['metrics'] = run_training(loaders['train'],
+                                                                 loaders['val'],
+                                                                 loaders['test'],
+                                                                 temp_config)
+finally:  # save partial results even if program crashes or is stopped
     with open(results_path, 'wb') as f:
         pickle.dump(results, f)
