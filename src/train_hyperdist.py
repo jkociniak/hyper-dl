@@ -19,10 +19,10 @@ with open(args.config_file, 'r') as f:
     default_config = AttrDict(yaml.load(f, Loader=yaml.Loader))
 
 # experiments grid definition
-depths = [2, 3, 4]
-widths = [320]
-dims = range(2, 14)
-results_path = f'results/grid_dims_noskips_d2-4'
+depths = [2]
+widths = [20]
+dims = range(2, 3)
+results_path = f'results/test'
 
 # main loop
 results = {"keys": list(product(dims, depths, widths))}
