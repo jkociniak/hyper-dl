@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from hypertorch.nn import HyperbolicConcat
-from layers import EuclideanFFN, hard_clipping
+from layers import EuclideanFFN, HyperbolicFFN, hard_clipping
 from hypertorch.math import exp_map, log_map
 from functools import partial
 
@@ -40,6 +40,24 @@ class EuclideanFFNModel(nn.Module):
         return x
 
 
+class HyperbolicFFNModel(nn.Module):
+    def __init__(self,
+                 input_dim,
+                 hidden_dims,
+                 **kwargs):
+        super().__init__()
+        dims = [input_dim] * 2
+        self.concat_layer = HyperbolicConcat(dims, hidden_dims[0])
+        self.ffn = HyperbolicFFN(hidden_dims[0], hidden_dims[1:], 1, **kwargs)
+
+    def forward(self, x1, x2):
+        x = self.hyperbolic_concat(x1, x2)
+        x = self.ffn(x)
+        x = x.squeeze()
+        x = log_map(0, x)
+        return x
+
+
 # TODO finish
 class EncoderHeadModel(nn.Module):
     def __init__(self, input_dim, encoder, head, encoder_type, head_type, encoder_r):
@@ -72,27 +90,17 @@ class EncoderHeadModel(nn.Module):
     def build_encoder(self, name, **kwargs):
         if name == 'EuclideanFFN':
             return EuclideanFFN(**kwargs)
+        elif name == 'HyperbolicFFN':
+            return HyperbolicFFN(**kwargs)
         else:
             raise NotImplementedError(f'the encoder {name} is not implemented!')
 
     def build_head(self, name, **kwargs):
         if name == 'EuclideanFFN':
             return EuclideanFFN(**kwargs)
+        elif name == 'HyperbolicFFN':
+            return HyperbolicFFN(**kwargs)
         else:
             raise NotImplementedError(f'the head {name} is not implemented!')
 
 
-class HyperbolicFFNModel(nn.Module):
-    def __init__(self,
-                 input_dim,
-                 hidden_dims,
-                 **kwargs):
-        super().__init__()
-        dims = [input_dim] * 2
-        self.hyperbolic_concat = HyperbolicConcat(dims, input_dim)
-
-    def forward(self, x1, x2):
-        x = self.hyperbolic_concat(x1, x2)
-        x = self.ffn(x)
-        x = x.squeeze()
-        return x

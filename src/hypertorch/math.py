@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 
+
 def mobius_addition(x, y):
     dot_xy = torch.sum(x * y, dim=1, keepdim=True)
     dot_xx = torch.sum(x * x, dim=1, keepdim=True)
@@ -9,6 +10,7 @@ def mobius_addition(x, y):
     denominator = 1 + 2 * dot_xy + dot_xx * dot_yy
     return numerator / denominator
 
+
 def mobius_addition_np(x, y):
     dot_xy = np.sum(x * y)
     dot_xx = np.sum(x * x)
@@ -16,6 +18,7 @@ def mobius_addition_np(x, y):
     numerator = (1 + 2 * dot_xy + dot_yy) * x + (1 - dot_xx) * y
     denominator = 1 + 2 * dot_xy + dot_xx * dot_yy
     return numerator / denominator
+
 
 def exp_map(x, v):
     v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
@@ -40,3 +43,7 @@ def hyperbolic_dist(x):
     norm = torch.linalg.norm(x, dim=1)
     res = 2 * torch.arctanh(norm)
     return res
+
+
+def mobius(f):
+    return lambda x: exp_map(0, f(log_map(0, x)))

@@ -4,6 +4,7 @@ from models import build_model
 from loops import train_loop
 from utils import mape
 
+
 def run_training(train_loader, val_loader, test_loader, config):
     model = build_model(**config.model)
     criterion, metrics = build_metrics(**config.metrics)
@@ -32,6 +33,7 @@ def run_training(train_loader, val_loader, test_loader, config):
         run.stop()
     return results
 
+
 def convert_to_strings(d):
     res = {}
     for k, v in d.items():
@@ -41,10 +43,12 @@ def convert_to_strings(d):
             res[k] = str(v)
     return res
 
+
 def build_metrics(loss, additional):
     criterion = build_loss(loss)
     metrics = {name: build_metric(name) for name in additional}
     return criterion, metrics
+
 
 def build_loss(loss):
     if loss == 'MSE':
@@ -52,11 +56,13 @@ def build_loss(loss):
     else:
         raise NotImplementedError(f'the loss function {loss} is not implemented!')
 
+
 def build_metric(name):
     if name == 'MAPE':
         return mape
     else:
         raise NotImplementedError(f'the metric {name} is not implemented!')
+
 
 def build_optimizer(params, name, **kwargs):
     if name == 'SGD':
@@ -65,6 +71,7 @@ def build_optimizer(params, name, **kwargs):
         return optim.Adam(params, **kwargs)
     else:
         raise NotImplementedError(f'the optimizer {name} is not implemented!')
+
 
 def build_scheduler(optimizer, name, **kwargs):
     if name == 'None':

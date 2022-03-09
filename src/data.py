@@ -6,7 +6,7 @@ from torch.distributions.uniform import Uniform
 from utils import hyperbolic_dist_np
 
 
-def build_loaders(n_samples, dim, eps, bs):
+def build_loaders(n_samples, dim, eps, bs, transform_dim):
     n_train, n_val = int(0.7 * n_samples), int(0.2 * n_samples)
 
     sizes = {
@@ -15,7 +15,7 @@ def build_loaders(n_samples, dim, eps, bs):
         'test': int(n_samples - n_train - n_val)
     }
 
-    datasets = {name: HyperbolicPairsDataset(size, dim, eps)
+    datasets = {name: HyperbolicPairsDataset(size, dim, eps, transform_dim)
                 for name, size in sizes.items()}
 
     loaders = {name: build_dataloader(name, dataset, bs)
@@ -32,10 +32,13 @@ def build_dataloader(name, dataset, bs):
 
 
 class HyperbolicPairsDataset(Dataset):
-    def __init__(self, n_samples, dim, eps):
+    def __init__(self, n_samples, dim, eps, transform_dim=None):
         self.n_samples = n_samples
         self.dim = dim
         self.eps = eps
+        self.transform_dim = dim
+        if transform_dim is not None:
+            self.transform_dim = transform_dim
         self.pairs = self.generate_hyperbolic_pairs()
         self.distances = self.compute_distances()
 
@@ -51,7 +54,7 @@ class HyperbolicPairsDataset(Dataset):
         max_radius = 1 - self.eps
         distribution = Uniform(0, max_radius)
         radii = distribution.sample((self.n_samples, 2, 1))
-        transformed_radii = torch.pow(radii, 1/self.dim)
+        transformed_radii = torch.pow(radii, 1 / self.transform_dim)
 
         pairs = unit_directions * transformed_radii
         return pairs
