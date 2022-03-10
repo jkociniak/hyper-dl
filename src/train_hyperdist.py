@@ -25,9 +25,9 @@ with open(args.config_file, 'r') as f:
     default_config = AttrDict(yaml.load(f, Loader=yaml.Loader))
 
 # experiments grid definition
-epsilons = [1e-2, 1e-3, 1e-4]
-dim_tdim_products = [(dim, t_dim) for dim in range(2, 5) for t_dim in range(dim, dim + 3)]
-results_path = f'results/grid_transform_dims_full'
+epsilons = [1e-3]
+dim_tdim_products = [(dim, t_dim) for dim in range (4, 5) for t_dim in range(dim, dim+3)]
+results_path = f'results/grid_transform_dims_full_1e-3_dim4'
 results_gdrive_path = '/content/drive/My Drive/Hyperbolic neural networks/' + results_path
 model_seeds = [777, 888, 999]
 
@@ -58,5 +58,5 @@ for eps, (dim, t_dim) in product(epsilons, dim_tdim_products):
                                                                  loaders['test'],
                                                                  temp_config)
 
-        with open(results_gdrive_path, 'wb') as f:
+        with open(results_path, 'wb') as f:
             pickle.dump(results, f)
