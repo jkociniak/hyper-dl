@@ -1,5 +1,6 @@
 epochs: 200
-seed: 777
+dataset_seed: 777
+model_seed: 777
 
 dataset_params:
     n_samples: 1.0e+5  # it will be divided in 70:20:10 ratio
@@ -10,7 +11,7 @@ dataset_params:
 model:
     name: EuclideanFFNModel
     input_dim: 2
-    hidden_dims: [128, 256, 256, 128, 64, 64]
+    hidden_dims: [320, 320, 320, 320, 320]
     activations: relu
     batch_norm: False
     skips: False

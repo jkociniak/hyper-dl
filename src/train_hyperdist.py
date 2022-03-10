@@ -12,6 +12,12 @@ from copy import deepcopy
 import pickle
 
 
+def reset_rngs(seed):
+    torch.manual_seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+
+
 parser = argparse.ArgumentParser(description='Train hyperbolic distance prediction model.')
 parser.add_argument('config_file', help='path to the configuration file', type=pathlib.Path)
 args = parser.parse_args()
@@ -19,40 +25,38 @@ with open(args.config_file, 'r') as f:
     default_config = AttrDict(yaml.load(f, Loader=yaml.Loader))
 
 # experiments grid definition
-depths = range(3, 8)
-widths = [160]
-dims = range(2, 14)
-results_path = f'results/grid_dims2-13_noskips_d3-7_width160'
+epsilons = [1e-2, 1e-3, 1e-4]
+dim_tdim_products = [(dim, t_dim) for dim in range(2, 5) for t_dim in range(dim, dim + 3)]
+results_path = f'results/grid_transform_dims_full'
+results_gdrive_path = '/content/drive/My Drive/Hyperbolic neural networks/' + results_path
+model_seeds = [777, 888, 999]
 
 # main loop
-results = {"keys": list(product(dims, depths, widths))}
-try:
-    for dim in dims:  # separate loop because of different datasets
-        default_config['dataset_params']['dim'] = dim
+results = {}
+for eps, (dim, t_dim) in product(epsilons, dim_tdim_products):
+    default_config['dataset_params']['eps'] = eps
+    default_config['dataset_params']['dim'] = dim
+    default_config['model']['input_dim'] = dim
+    default_config['dataset_params']['transform_dim'] = t_dim
 
-        # reseed the RNGs before constructing new datasets
-        torch.manual_seed(default_config.seed)
-        random.seed(default_config.seed)
-        np.random.seed(default_config.seed)
+    # reset RNGs before dataset generation
+    reset_rngs(default_config.dataset_seed)
 
-        loaders = build_loaders(**default_config.dataset_params)
-        for depth, width in product(depths, widths):
-            temp_config = deepcopy(default_config)
+    loaders = build_loaders(**default_config.dataset_params)
 
-            temp_config['model']['hidden_depth'] = depth
-            temp_config['model']['hidden_width'] = width
+    for seed in model_seeds:
+        default_config['model_seed'] = seed
 
-            hidden_dims = [width] * depth
-            temp_config['model']['hidden_dims'] = hidden_dims
-            temp_config['model']['input_dim'] = dim
+        temp_config = deepcopy(default_config)
+        results[eps, dim, t_dim, seed] = {'config': temp_config}
 
-            results[dim, depth, width] = {'config': temp_config}
-
-            print(f'Running experiment with dim={dim}, hidden_depth={depth}, hidden_width={width}')
-            results[dim, depth, width]['metrics'] = run_training(loaders['train'],
+        print(f'Running experiment with eps={eps}, dim={dim}, transform_dim={t_dim}, seed={seed}')
+        # reset RNGS before model training
+        reset_rngs(seed)
+        results[eps, dim, t_dim, seed]['metrics'] = run_training(loaders['train'],
                                                                  loaders['val'],
                                                                  loaders['test'],
                                                                  temp_config)
-finally:  # save partial results even if program crashes or is stopped
-    with open(results_path, 'wb') as f:
-        pickle.dump(results, f)
+
+        with open(results_gdrive_path, 'wb') as f:
+            pickle.dump(results, f)
