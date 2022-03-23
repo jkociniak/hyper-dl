@@ -23,7 +23,7 @@ def get_experiment_folders(multirun_dir):
                     for set_entry in os.scandir(seed_entry.path):
                         if set_entry.is_dir() and set_entry.name[0] != '.':  # subfolder with name train/val/test
                             params['set'] = set_entry.name
-                            yield set_entry.path, params
+                            yield set_entry.path, dict(params)
 
 
 results_full = []
