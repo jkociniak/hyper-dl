@@ -3,10 +3,12 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torch.distributions.multivariate_normal import MultivariateNormal
 from torch.distributions.uniform import Uniform
-from utils import hyperbolic_dist_np
+from utils import hyperbolic_dist_np, reset_rngs
 
 
-def build_loaders(n_samples, dim, eps, bs, transform_dim):
+def build_loaders(seed, n_samples, dim, eps, bs, transform_dim):
+    reset_rngs(seed)  # reset RNGs before dataset generation
+
     n_train, n_val = int(0.7 * n_samples), int(0.2 * n_samples)
 
     sizes = {
@@ -21,7 +23,7 @@ def build_loaders(n_samples, dim, eps, bs, transform_dim):
     loaders = {name: build_dataloader(name, dataset, bs)
                for name, dataset in datasets.items()}
 
-    return loaders
+    return datasets, loaders
 
 
 def build_dataloader(name, dataset, bs):

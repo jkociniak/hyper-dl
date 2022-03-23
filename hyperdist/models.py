@@ -1,9 +1,65 @@
-import torch
-import torch.nn as nn
-from hypertorch.nn import HyperbolicConcat
-from layers import EuclideanFFN, HyperbolicFFN, hard_clipping
-from hypertorch.math import exp_map, log_map
-from functools import partial
+from hypertorch.nn import DoubleInputHyperbolicFFN, SemiRiemannianModule
+from layers import DoubleInputEuclideanFFN, build_layer
+# from hypertorch.math import exp_map0, log_map0
+
+
+class HyperbolicFFNModel(DoubleInputHyperbolicFFN):
+    def __init__(self,
+                 input_dim,
+                 hidden_dims,
+                 **kwargs):
+        super().__init__(input_dim, hidden_dims, 1, **kwargs)
+
+
+class EuclideanFFNModel(DoubleInputEuclideanFFN):
+    def __init__(self,
+                 input_dim,
+                 hidden_dims,
+                 **kwargs):
+        super().__init__(input_dim, hidden_dims, 1, **kwargs)
+
+
+class EncoderHeadModel(SemiRiemannianModule):
+    def __init__(self, input_dim, inter_dim, encoder, head):
+        super().__init__()
+        encoder['input_dim'] = input_dim
+        encoder['output_dim'] = inter_dim
+        self.encoder = build_layer(**encoder)
+
+        head['input_dim'] = inter_dim
+        head['output_dim'] = 1
+        self.head = build_layer(**head)
+
+        # if encoder_r is not None:
+        #     assert encoder_r > 0, "Clipping parameter should be positive!"
+        #     self.clipping = partial(hard_clipping, encoder_r)
+
+    def forward(self, x1, x2):
+        # if self.clipping_r is not None:
+        #     x1 = log_map0(x1)
+        #     x2 = log_map0(x2)
+
+        e = self.encoder(x1, x2)
+
+        # # should I go back into tangent space?
+        # # We start with hyperbolic input. If
+        # if isinstance(self.encoder, EuclideanFFN) and isinstance(self.head, HyperbolicFFN):
+        #     e =
+
+        # if self.clipping_r is not None:
+        #     e = self.clipping(e)
+        #     e = exp_map0(e)
+
+        d = self.head(e)
+        d = d.squeeze()
+        return d
+
+
+name2model = {
+    'EncoderHeadModel': EncoderHeadModel,
+    'EuclideanFFNModel': EuclideanFFNModel,
+    'HyperbolicFFNModel': HyperbolicFFNModel,
+}
 
 
 def build_model(name, **kwargs):
@@ -13,94 +69,7 @@ def build_model(name, **kwargs):
     :param kwargs: parameters to pass to the model constructor
     :return: object containing built model
     """
-    if name == 'EncoderHeadModel':
-        return EncoderHeadModel(**kwargs)
-    elif name == 'EuclideanFFNModel':
-        return EuclideanFFNModel(**kwargs)
-    elif name == 'HyperbolicFFNModel':
-        return HyperbolicFFNModel(**kwargs)
-    else:
+    try:
+        return name2model[name](**kwargs)
+    except KeyError:
         raise NotImplementedError(f'the model {name} is not implemented!')
-
-
-class EuclideanFFNModel(nn.Module):
-    def __init__(self,
-                 input_dim,
-                 hidden_dims,
-                 **kwargs):
-        super().__init__()
-        self.concat_layer = nn.Linear(2 * input_dim, hidden_dims[0])
-        self.ffn = EuclideanFFN(hidden_dims[0], hidden_dims[1:], 1, **kwargs)
-
-    def forward(self, x1, x2):
-        x = torch.cat((x1, x2), dim=1)
-        x = self.concat_layer(x)
-        x = self.ffn(x)
-        x = x.squeeze()
-        return x
-
-
-class HyperbolicFFNModel(nn.Module):
-    def __init__(self,
-                 input_dim,
-                 hidden_dims,
-                 **kwargs):
-        super().__init__()
-        dims = [input_dim] * 2
-        self.concat_layer = HyperbolicConcat(dims, hidden_dims[0])
-        self.ffn = HyperbolicFFN(hidden_dims[0], hidden_dims[1:], 1, **kwargs)
-
-    def forward(self, x1, x2):
-        x = self.hyperbolic_concat(x1, x2)
-        x = self.ffn(x)
-        x = x.squeeze()
-        x = log_map(0, x)
-        return x
-
-
-# TODO finish
-class EncoderHeadModel(nn.Module):
-    def __init__(self, input_dim, encoder, head, encoder_type, head_type, encoder_r):
-        super().__init__()
-        encoder['input_dim'] = input_dim
-        encoder['output_dim'] = input_dim
-        head['input_dim'] = input_dim
-        head['output_dim'] = 1
-        self.encoder = self.build_encoder(**encoder)
-        self.head = self.build_head(**head)
-        if encoder_r is not None:
-            assert encoder_r > 0, "Clipping parameter should be positive!"
-            self.clipping = partial(hard_clipping, encoder_r)
-
-    def forward(self, x1, x2):
-        if self.clipping_r is not None:
-            x1 = log_map(torch.zeros_like(x1), x1)
-            x2 = log_map(torch.zeros_like(x2), x2)
-
-        e = self.encoder(x1, x2)
-
-        if self.clipping_r is not None:
-            e = self.clipping(e)
-            e = exp_map(torch.zeros_like(e), e)
-
-        d = self.head(e)
-        d = d.squeeze()
-        return d
-
-    def build_encoder(self, name, **kwargs):
-        if name == 'EuclideanFFN':
-            return EuclideanFFN(**kwargs)
-        elif name == 'HyperbolicFFN':
-            return HyperbolicFFN(**kwargs)
-        else:
-            raise NotImplementedError(f'the encoder {name} is not implemented!')
-
-    def build_head(self, name, **kwargs):
-        if name == 'EuclideanFFN':
-            return EuclideanFFN(**kwargs)
-        elif name == 'HyperbolicFFN':
-            return HyperbolicFFN(**kwargs)
-        else:
-            raise NotImplementedError(f'the head {name} is not implemented!')
-
-

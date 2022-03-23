@@ -1,6 +1,16 @@
 import torch
 import numpy as np
 
+TOLERANCE_EPS = 1e-7
+STABILITY_EPS = 1e-6
+
+
+def validate(x):  # ensure that x is not too close to 0
+    zeros = torch.zeros_like(x)
+    mask = torch.isclose(x, zeros, atol=TOLERANCE_EPS, rtol=0)
+    zeros[mask] = STABILITY_EPS
+    return x + zeros
+
 
 def mobius_addition(x, y):
     dot_xy = torch.sum(x * y, dim=1, keepdim=True)
@@ -27,12 +37,26 @@ def exp_map(x, v):
     return mobius_addition(x, scalar_factor * v)
 
 
+def exp_map0(v):
+    v = validate(v)
+    v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
+    scalar_factor = torch.tanh(v_norm) / v_norm
+    return scalar_factor * v
+
+
 def log_map(x, y):
     v = mobius_addition(-x, y)
     v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
     cf = conformal_factor(x)
     scalar_factor = 2 * torch.arctanh(v_norm) / (cf * v_norm)
     return scalar_factor * v
+
+
+def log_map0(y):
+    y = validate(y)
+    y_norm = torch.linalg.norm(y, dim=1, keepdim=True)
+    scalar_factor = torch.arctanh(y_norm) / y_norm
+    return scalar_factor * y
 
 
 def conformal_factor(x):
@@ -46,4 +70,9 @@ def hyperbolic_dist(x):
 
 
 def mobius(f):
-    return lambda x: exp_map(0, f(log_map(0, x)))
+    return lambda x: exp_map0(f(log_map0(x)))
+
+
+# def minkowski_inner_product(x, y):
+#     x_h, y_h = p2h(x), p2h(y)
+

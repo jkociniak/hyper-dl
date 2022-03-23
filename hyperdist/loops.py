@@ -1,32 +1,38 @@
 import torch
+import pandas as pd
 from collections import defaultdict
+from neptune.new.types import File
 
 
-def train_loop(run, epochs, model, criterion, metrics, optimizer, scheduler, train_loader, val_loader, test_loader):
+def train_loop(run, epochs, model, criterion, metrics, optimizer, scheduler, r_optimizer, r_scheduler, loaders):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device)
     model.to(device)
 
     for epoch in range(epochs):
-        train_loss, train_metrics = train(run, model, criterion, metrics, optimizer, train_loader, device)
+        train_loss = train(run, model, criterion, metrics, optimizer, r_optimizer, loaders['train'], device)
         print(f'[{epoch + 1}] train loss (mean of batch losses): {train_loss}')
 
-        val_loss, val_metrics = evaluate(run, model, criterion, metrics, val_loader, device, 'val')
+        val_loss = evaluate(run, model, criterion, metrics, loaders['val'], device)
         print(f'[{epoch + 1}] val loss: {val_loss}')
 
         if scheduler is not None:
             scheduler.step(val_loss)
 
+        if r_scheduler is not None:
+            r_scheduler.step(val_loss)
+
     print('Training finished')
 
-    test_loss, test_metrics = evaluate(run, model, criterion, metrics, test_loader, device, 'test')
-    print(f'test loss: {test_loss}')
+    print('Generating results...')
+    results = final_evaluate(run, model, criterion, metrics, loaders, device)
+
     print('Experiment finished')
 
-    return test_loss, test_metrics
+    return results
 
 
-def train(run, model, criterion, metrics_dict, optimizer, loader, device):
+def train(run, model, criterion, metrics_dict, optimizer, r_optimizer, loader, device):
     model.train()
 
     loss = 0
@@ -42,10 +48,15 @@ def train(run, model, criterion, metrics_dict, optimizer, loader, device):
 
         optimizer.zero_grad()
         dist_pred = model(x1, x2)
+        dist_pred = dist_pred.squeeze()
 
         batch_loss = criterion(dist_pred, dist)
         batch_loss.backward()
-        optimizer.step()
+
+        if optimizer is not None:
+            optimizer.step()
+        if r_optimizer is not None:
+            r_optimizer.step()
 
         batch_loss *= loader.batch_size
         loss += batch_loss.item()
@@ -61,10 +72,10 @@ def train(run, model, criterion, metrics_dict, optimizer, loader, device):
         for metric_name, metric_val in metrics.items():
             run[f'metrics/train/{metric_name}'].log(metric_val)
 
-    return loss, metrics
+    return loss
 
 
-def evaluate(run, model, criterion, metrics_dict, loader, device, set_name):
+def evaluate(run, model, criterion, metrics_dict, loader, device):
     model.eval()
 
     loss = 0
@@ -79,6 +90,7 @@ def evaluate(run, model, criterion, metrics_dict, loader, device, set_name):
             n_samples += x1.size(dim=0)
 
             dist_pred = model(x1, x2)
+            dist_pred = dist_pred.squeeze()
 
             batch_loss = criterion(dist_pred, dist).item() * loader.batch_size
             loss += batch_loss
@@ -90,8 +102,69 @@ def evaluate(run, model, criterion, metrics_dict, loader, device, set_name):
     metrics = {name: val / n_samples for name, val in metrics.items()}
 
     if run is not None:
-        run[f'metrics/{set_name}/loss'].log(loss)
+        run[f'metrics/val/loss'].log(loss)
         for metric_name, metric_val in metrics.items():
-            run[f'metrics/{set_name}/{metric_name}'].log(metric_val)
+            run[f'metrics/val/{metric_name}'].log(metric_val)
 
-    return loss, metrics
+    return loss
+
+
+def final_evaluate(run, model, criterion, metrics_dict, loaders, device):
+    model.eval()
+
+    results = {}
+    for name, loader in loaders.items():
+        dists = []
+        preds = []
+
+        with torch.no_grad():
+            for i, data in enumerate(loader):
+                pairs, dist = data['pairs'], data['dist']
+                pairs, dist = pairs.to(device), dist.to(device)
+                x1, x2 = pairs[:, 0, :], pairs[:, 1, :]
+
+                dist_pred = model(x1, x2)
+                dist_pred = dist_pred.squeeze()
+
+                dists.append(dist)
+                preds.append(dist_pred)
+
+        dists = torch.cat(dists)
+        preds = torch.cat(preds)
+        metrics = {}
+
+        for metric_name, metric in metrics_dict.items():
+            metrics[metric_name] = metric(preds, dists, reduction='none')
+
+        results_df = pd.DataFrame({
+            'dist': dists,
+            'pred': preds,
+            **metrics
+        })
+
+        results[name] = results_df
+
+        if run is not None:
+            run[f'results/{name}'].upload(File.as_html(results_df))
+
+    return results
+
+
+# def after_eval(model):
+#     cl = model.encoder.concat_layer
+#     w1 = cl.mfc1.fc.weight
+#     b1 = cl.mfc1.fc.bias
+#     w2 = cl.mfc2.fc.weight
+#     b2 = cl.mfc2.fc.bias
+#     print()
+#     print(f'W1: {w1}')
+#     print(f'W1^T W1 = {w1 @ w1.T}')
+#     print(f'b1: {b1}')
+#     print(f'W2: {w2}')
+#     print(f'W1^T W1 = {w2 @ w2.T}')
+#     print(f'b2: {b2}')
+#
+#
+# def add_artifacts(model):
+#     for idx, m in enumerate(model.named_modules()):
+#         print(idx, '->', m)
