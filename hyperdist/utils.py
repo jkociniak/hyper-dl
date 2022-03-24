@@ -31,4 +31,7 @@ def MAPE(y, y_pred, reduction='mean'):
 
 
 def hyperbolic_dist_np(x, y):
-    return 2 * np.arctanh(np.linalg.norm(mobius_addition_np(-x, y)))
+    mobadd = mobius_addition_np(-x, y)
+    d = np.linalg.norm(mobadd)
+    d = 1 - 1e-8 if d > 1 - 1e-8 else d
+    return 2 * np.arctanh(d)
