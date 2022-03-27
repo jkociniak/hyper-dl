@@ -1,20 +1,13 @@
 import os
 import pandas as pd
 
-multirun_dir = 'experiments/multi/transform_dim_big_batch/2022-03-22_16:52:13'
-# multirun_conf_name = 'multirun.yaml'
-# multirun_conf_path = os.path.join(multirun_dir, multirun_conf_name)
-#
-# with open(multirun_conf_path, 'r') as f:
-#     multirun_conf = yaml.safe_load(f)
-#
-# print(multirun_conf['hydra']['sweeper'])
+multirun_dir = 'experiments/multi/transform_dim_big_batch/2022-03-24_03:44:38'
 
 
 def get_experiment_folders(multirun_dir):
     for base_entry in os.scandir(multirun_dir):
         if base_entry.is_dir():  # subfolder with name param1=val1,param2=val2 etc
-            params = base_entry.name.split(sep=',')
+            params = base_entry.name.split(sep=',', maxsplit=1)
             params = [p.split(sep='=') for p in params]
             params = {p[0]: p[1] for p in params}
             for seed_entry in os.scandir(base_entry.path):
