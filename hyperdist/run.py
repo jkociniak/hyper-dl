@@ -7,13 +7,12 @@ import os
 
 
 @hydra.main(config_path='conf', config_name='config')
-def run_training(cfg: DictConfig) -> None:
+def train(cfg: DictConfig) -> None:
     print("Working directory : {}".format(os.getcwd()))
     datasets, loaders = build_loaders(**cfg['dataset_params'])
     results = run_training(loaders=loaders,
                            cfg=cfg,
                            **cfg)
-
     folder_names = set(datasets.keys()) | set(results.keys())
     base_dir = os.getcwd()
     setup_dirs(folder_names, base_dir)
@@ -22,4 +21,4 @@ def run_training(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    run_training()
+    train()
