@@ -7,7 +7,7 @@ import os
 
 
 @hydra.main(config_path='conf', config_name='config')
-def my_app(cfg: DictConfig) -> None:
+def run_training(cfg: DictConfig) -> None:
     print("Working directory : {}".format(os.getcwd()))
     datasets, loaders = build_loaders(**cfg['dataset_params'])
     results = run_training(loaders=loaders,
@@ -22,4 +22,4 @@ def my_app(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    my_app()
+    run_training()

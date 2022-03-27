@@ -1,7 +1,13 @@
 import os
 import pandas as pd
+import argparse
 
-multirun_dir = 'experiments/multi/transform_dim_big_batch/2022-03-24_03:44:38'
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Combine results of a multirun into one dataframe.')
+    parser.add_argument('multirun_dir')
+    args = parser.parse_args()
+    return args.multirun_dir
 
 
 def get_experiment_folders(multirun_dir):
@@ -19,18 +25,23 @@ def get_experiment_folders(multirun_dir):
                             yield set_entry.path, dict(params)
 
 
-results_full = []
-for i, (folder, params) in enumerate(get_experiment_folders(multirun_dir)):
-    print(i)
-    results_path = os.path.join(folder, 'results.csv')
-    results = pd.read_csv(results_path)
-    result_row = params
-    for col in results.columns:
-        if col not in ['Unnamed: 0', 'dist', 'pred']:
-            result_row[col] = results[col].mean()
-    results_full.append(result_row)
+def get_full_results(multirun_dir):
+    results_full = []
+    for i, (folder, params) in enumerate(get_experiment_folders(multirun_dir)):
+        print(i)
+        results_path = os.path.join(folder, 'results.csv')
+        results = pd.read_csv(results_path)
+        result_row = params
+        for col in results.columns:
+            if col not in ['Unnamed: 0', 'dist', 'pred']:
+                result_row[col] = results[col].mean()
+        results_full.append(result_row)
+    return results_full
 
-results_full = pd.DataFrame(results_full)
-results_path = os.path.join(multirun_dir, 'full_results.csv')
-results_full.to_csv(results_path)
 
+if __name__ == "__main__":
+    multirun_dir = parse_args()
+    results_full = get_full_results(multirun_dir)
+    results_full = pd.DataFrame(results_full)
+    results_path = os.path.join(multirun_dir, 'full_results.csv')
+    results_full.to_csv(results_path)

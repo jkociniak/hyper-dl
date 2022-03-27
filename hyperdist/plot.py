@@ -62,7 +62,7 @@ def dump_results(results, dir_path):
     for set_name, res in results.items():
         results_name = 'results.csv'
         path = os.path.join(dir_path, set_name, results_name)
-        res.to_csv(path)
+        res.to_csv(path, index=False)
 
         # plot_name = 'distributions.png'
         # plot_path = os.path.join(dir_path, set_name, plot_name)
