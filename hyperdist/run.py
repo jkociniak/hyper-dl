@@ -13,7 +13,6 @@ def train(cfg: DictConfig) -> None:
     results = run_training(loaders=loaders,
                            cfg=cfg,
                            **cfg)
-
     folder_names = set(datasets.keys()) | set(results.keys())
     base_dir = os.getcwd()
     setup_dirs(folder_names, base_dir)
