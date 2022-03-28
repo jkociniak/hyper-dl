@@ -72,9 +72,9 @@ def dump_results(results, dir_path):
         # plot_path = os.path.join(dir_path, set_name, plot_name)
         # plot_scatterplots(res, plot_path)
 
-        plot_name = 'pairplot.png'
-        plot_path = os.path.join(dir_path, set_name, plot_name)
-        plot_pairplot(res, plot_path)
+        # plot_name = 'pairplot.png'
+        # plot_path = os.path.join(dir_path, set_name, plot_name)
+        # plot_pairplot(res, plot_path)
 
 
 

@@ -68,4 +68,4 @@ if __name__ == "__main__":
     results_full = get_full_results(multirun_dir)
     results_full = pd.DataFrame(results_full)
     results_path = os.path.join(multirun_dir, 'full_results.csv')
-    results_full.to_csv(results_path)
+    results_full.to_csv(results_path, index=False)
