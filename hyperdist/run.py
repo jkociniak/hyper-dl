@@ -10,7 +10,7 @@ import pickle
 
 def build_dataset_path(seed, n_samples, dim, eps, curv, transform_dim):
     template = 'dim={},n_samples={},eps={},transform_dim={},curv={},seed={}.pkl'
-    return template.format(dim, n_samples, eps, transform_dim, curv, seed)
+    return template.format(int(dim), int(n_samples), eps, transform_dim, curv, seed)
 
 
 @hydra.main(config_path='conf', config_name='config')
