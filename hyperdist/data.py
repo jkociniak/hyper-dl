@@ -28,17 +28,17 @@ def build_datasets(seed, n_samples, dim, eps, transform_dim, curv, datasets_fold
         pickle.dump(datasets, f)
 
 
-def build_loaders(datasets, bs):
-    loaders = {name: build_dataloader(name, dataset, bs)
+def build_loaders(datasets, bs, num_workers):
+    loaders = {name: build_dataloader(name, dataset, bs, num_workers)
                for name, dataset in datasets.items()}
     return loaders
 
 
-def build_dataloader(name, dataset, bs):
+def build_dataloader(name, dataset, bs, num_workers):
     if name == 'train':
-        return DataLoader(dataset, batch_size=bs, shuffle=True, num_workers=0)
+        return DataLoader(dataset, batch_size=bs, shuffle=True, num_workers=num_workers)
     else:
-        return DataLoader(dataset, batch_size=bs, shuffle=False, num_workers=0)
+        return DataLoader(dataset, batch_size=bs, shuffle=False, num_workers=num_workers)
 
 
 class HyperbolicPairsDataset(Dataset):

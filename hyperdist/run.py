@@ -22,7 +22,7 @@ def train(cfg: DictConfig) -> None:
 
     with open(dataset_path, 'rb') as f:
         datasets = pickle.load(f)
-    loaders = build_loaders(datasets, cfg['bs'])
+    loaders = build_loaders(datasets, cfg['bs'], cfg['num_workers'])
 
     results, run = run_training(loaders=loaders,
                                 cfg=cfg,

@@ -30,7 +30,7 @@ hydra:
 epochs: 200
 seed: 777  # seed for training the model
 bs: 256  # batch size
-
+num_workers: 2
 
 ####################### DATASET PARAMS ###########################
 
