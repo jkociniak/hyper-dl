@@ -36,9 +36,9 @@ def build_loaders(datasets, bs, num_workers):
 
 def build_dataloader(name, dataset, bs, num_workers):
     if name == 'train':
-        return DataLoader(dataset, batch_size=bs, shuffle=True, num_workers=num_workers)
+        return DataLoader(dataset, batch_size=bs, shuffle=True, num_workers=num_workers, pin_memory=True)
     else:
-        return DataLoader(dataset, batch_size=bs, shuffle=False, num_workers=num_workers)
+        return DataLoader(dataset, batch_size=bs, shuffle=False, num_workers=num_workers, pin_memory=True)
 
 
 class HyperbolicPairsDataset(Dataset):
