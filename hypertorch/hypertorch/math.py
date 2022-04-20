@@ -73,6 +73,21 @@ def mobius(f):
     return lambda x: exp_map0(f(log_map0(x)))
 
 
-# def minkowski_inner_product(x, y):
-#     x_h, y_h = p2h(x), p2h(y)
+def h2p(x):
+    t = x[:, 0]
+    x = x[:, 1:]
+    return x / (1 + t)
+
+
+def p2h(y):
+    t = (1 + (y**2).sum(dim=1)) / (1 - (y**2).sum(dim=1))
+    x = 2*y / (1 - (y**2).sum(dim=1))
+    return torch.cat([t, x], dim=1)
+
+
+def minkowski_inner_product(x, y):
+    x_h, y_h = p2h(x), p2h(y)
+    xy_h = x_h * y_h
+    prod = xy_h[:, 0] - xy_h[:, 1:].sum(dim=1)
+    return prod
 
