@@ -32,6 +32,16 @@ seed: 777  # seed for training the model
 bs: 256  # batch size
 
 
+####################### DATASET PARAMS ###########################
+
+dataset_params:
+  seed: 777  # dataset generation seed
+  n_samples: 1.0e+5  # it will be divided in 70:20:10 ratio
+  dim: 2
+  eps: 1.0e-2
+  curv: 1
+  transform_dim: ${.dim}
+
 ########################## OTHER DEFINITIONS ############################
 
 model:

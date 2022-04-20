@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-import pickle
+from neptune.new.types import File
 
 
 def setup_dirs(names, dir_path):
@@ -41,28 +41,18 @@ def plot_scatterplots(res, path):
 def plot_pairplot(res, path):
     sns_plot = sns.pairplot(data=res, height=3, aspect=1)
     sns_plot.fig.savefig(path)
+    return sns_plot.fig
 
 
-def dump_dataset_info(datasets, dir_path, dump_datasets=False):
-    for name, dataset in datasets.items():
-        plot_name = 'pairs_2d_visual.png'
-        plot_path = os.path.join(dir_path, name, plot_name)
-
-        if dataset.dim == 2:
-            dataset_pairs(dataset.pairs, plot_path)
-
-        if dump_datasets:
-            dataset_name = 'dataset.pickle'
-            dataset_path = os.path.join(dir_path, name, dataset_name)
-            with open(dataset_path, 'wb') as f:
-                pickle.dump(dataset.pairs, f)
-
-
-def dump_results(results, dir_path):
-    for set_name, res in results.items():
+def dump_results(datasets, results, dir_path, run):
+    set_names = ['train', 'val', 'test']
+    for set_name in set_names:
+        res = results[set_name]
         results_name = 'results.csv'
         path = os.path.join(dir_path, set_name, results_name)
         res.to_csv(path, index=False)
+
+        #data = datasets[set_name]
 
         # plot_name = 'distributions.png'
         # plot_path = os.path.join(dir_path, set_name, plot_name)
@@ -72,10 +62,9 @@ def dump_results(results, dir_path):
         # plot_path = os.path.join(dir_path, set_name, plot_name)
         # plot_scatterplots(res, plot_path)
 
-        # plot_name = 'pairplot.png'
-        # plot_path = os.path.join(dir_path, set_name, plot_name)
-        # plot_pairplot(res, plot_path)
-
-
+        plot_name = 'pairplot.png'
+        plot_path = os.path.join(dir_path, set_name, plot_name)
+        fig = plot_pairplot(res, plot_path)
+        run[f'results/{set_name}/pairplot'] = File.as_html(fig)
 
 

@@ -52,9 +52,7 @@ def run_training(epochs,
                          r_optimizer,
                          r_scheduler,
                          loaders)
-    if run is not None:
-        run.stop()
-    return results
+    return results, run
 
 
 def convert_to_strings(d):
