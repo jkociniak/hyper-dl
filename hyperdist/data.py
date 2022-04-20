@@ -4,9 +4,11 @@ from torch.utils.data import Dataset, DataLoader
 from torch.distributions.multivariate_normal import MultivariateNormal
 from torch.distributions.uniform import Uniform
 from utils import hyperbolic_dist_np, reset_rngs
+import pickle
+import os
 
 
-def build_loaders(seed, n_samples, dim, eps, bs, transform_dim):
+def build_datasets(seed, n_samples, dim, eps, transform_dim, curv, datasets_folder):
     reset_rngs(seed)  # reset RNGs before dataset generation
 
     n_train, n_val = int(0.7 * n_samples), int(0.2 * n_samples)
@@ -20,10 +22,16 @@ def build_loaders(seed, n_samples, dim, eps, bs, transform_dim):
     datasets = {name: HyperbolicPairsDataset(size, dim, eps, transform_dim)
                 for name, size in sizes.items()}
 
+    filename = f'dim={dim},n_samples={n_samples},eps={eps},transform_dim={transform_dim},curv={curv},seed={seed}.pkl'
+    filepath = os.path.join(datasets_folder, filename)
+    with open(filepath, 'wb') as f:
+        pickle.dump(datasets, f)
+
+
+def build_loaders(datasets, bs):
     loaders = {name: build_dataloader(name, dataset, bs)
                for name, dataset in datasets.items()}
-
-    return datasets, loaders
+    return loaders
 
 
 def build_dataloader(name, dataset, bs):
@@ -34,10 +42,11 @@ def build_dataloader(name, dataset, bs):
 
 
 class HyperbolicPairsDataset(Dataset):
-    def __init__(self, n_samples, dim, eps, transform_dim=None):
+    def __init__(self, n_samples, dim, eps, curv=1, transform_dim=None):
         self.n_samples = n_samples
         self.dim = dim
         self.eps = eps
+        self.curv = curv
         self.transform_dim = dim
         if transform_dim is not None:
             self.transform_dim = transform_dim

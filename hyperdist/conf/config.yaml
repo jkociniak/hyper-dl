@@ -27,19 +27,9 @@ hydra:
 
 ####################### TRAINING PARAMS ##########################
 
-dump_datasets: False
 epochs: 200
 seed: 777  # seed for training the model
-
-######################## DATASET PARAMS ############################
-
-dataset_params:
-    seed: 777  # dataset generation seed
-    n_samples: 1.0e+5  # it will be divided in 70:20:10 ratio
-    dim: 2
-    eps: 1.0e-2
-    bs: 256
-    transform_dim: ${.dim}
+bs: 256  # batch size
 
 
 ########################## OTHER DEFINITIONS ############################
