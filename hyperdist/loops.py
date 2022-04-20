@@ -136,9 +136,10 @@ def final_evaluate(run, model, criterion, metrics_dict, loaders, device):
 
         for metric_name, metric in metrics_dict.items():
             metrics[metric_name] = metric(preds, dists, reduction='none')
+            metrics[metric_name] = metrics[metric_name].cpu()
 
-        dists = dists.to('cpu')
-        preds = preds.to('cpu')
+        dists = dists.cpu()
+        preds = preds.cpu()
         results_df = pd.DataFrame({
             'dist': dists,
             'pred': preds,
