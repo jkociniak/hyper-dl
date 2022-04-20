@@ -6,6 +6,7 @@ from neptune.new.types import File
 
 def train_loop(run, epochs, model, criterion, metrics, optimizer, scheduler, r_optimizer, r_scheduler, loaders):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f'Found device: {device}')
     device = torch.device(device)
     model.to(device)
 
