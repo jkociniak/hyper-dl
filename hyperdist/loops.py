@@ -147,9 +147,9 @@ def final_evaluate(run, model, criterion, metrics_dict, loaders, device):
         })
 
         results[name] = results_df
-
-        if run is not None:
-            run[f'results/{name}/res_table'].upload(File.as_html(results_df))
+        # n_samples = results_df.shape[0]
+        # if run is not None and n_samples < :
+        #     run[f'results/{name}/res_table'].upload(File.as_html(results_df))
 
     return results
 
