@@ -12,55 +12,55 @@ def validate(x):  # ensure that x is not too close to 0
     return x + zeros
 
 
-def mobius_addition(x, y):
+def mobius_addition(x, y, c):
     dot_xy = torch.sum(x * y, dim=1, keepdim=True)
     dot_xx = torch.sum(x * x, dim=1, keepdim=True)
     dot_yy = torch.sum(y * y, dim=1, keepdim=True)
-    numerator = (1 + 2 * dot_xy + dot_yy) * x + (1 - dot_xx) * y
-    denominator = 1 + 2 * dot_xy + dot_xx * dot_yy
+    numerator = (1 + 2 * c * dot_xy + c * dot_yy) * x + (1 - c * dot_xx) * y
+    denominator = 1 + 2 * c * dot_xy + c * c * dot_xx * dot_yy
     return numerator / denominator
 
 
-def mobius_addition_np(x, y):
+def mobius_addition_np(x, y, c):
     dot_xy = np.sum(x * y)
     dot_xx = np.sum(x * x)
     dot_yy = np.sum(y * y)
-    numerator = (1 + 2 * dot_xy + dot_yy) * x + (1 - dot_xx) * y
-    denominator = 1 + 2 * dot_xy + dot_xx * dot_yy
+    numerator = (1 + 2 * c * dot_xy + c * dot_yy) * x + (1 - c * dot_xx) * y
+    denominator = 1 + 2 * c * dot_xy + c * c * dot_xx * dot_yy
     return numerator / denominator
 
 
-def exp_map(x, v):
+def exp_map(x, v, c):
     v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
-    cf = conformal_factor(x)
-    scalar_factor = torch.tanh(cf * v_norm / 2) / v_norm
-    return mobius_addition(x, scalar_factor * v)
+    cf = conformal_factor(x, c)
+    scalar_factor = torch.tanh(torch.sqrt(c) * cf * v_norm / 2) / (torch.sqrt(c) * v_norm)
+    return mobius_addition(x, scalar_factor * v, c)
 
 
-def exp_map0(v):
+def exp_map0(v, c):
     v = validate(v)
     v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
-    scalar_factor = torch.tanh(v_norm) / v_norm
+    scalar_factor = torch.tanh(torch.sqrt(c) * v_norm) / (torch.sqrt(c) * v_norm)
     return scalar_factor * v
 
 
-def log_map(x, y):
-    v = mobius_addition(-x, y)
+def log_map(x, y, c):
+    v = mobius_addition(-x, y, c)
     v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
-    cf = conformal_factor(x)
-    scalar_factor = 2 * torch.arctanh(v_norm) / (cf * v_norm)
+    cf = conformal_factor(x, c)
+    scalar_factor = 2 * torch.arctanh(torch.sqrt(c) * v_norm) / (torch.sqrt(c) * cf * v_norm)
     return scalar_factor * v
 
 
-def log_map0(y):
+def log_map0(y, c):
     y = validate(y)
     y_norm = torch.linalg.norm(y, dim=1, keepdim=True)
-    scalar_factor = torch.arctanh(y_norm) / y_norm
+    scalar_factor = torch.arctanh(torch.sqrt(c) * y_norm) / (torch.sqrt(c) * y_norm)
     return scalar_factor * y
 
 
-def conformal_factor(x):
-    return 2 / (1 - torch.linalg.norm(x) ** 2)
+def conformal_factor(x, c):
+    return 2 / (1 - c * torch.linalg.norm(x) ** 2)
 
 
 def hyperbolic_dist(x):
@@ -69,8 +69,8 @@ def hyperbolic_dist(x):
     return res
 
 
-def mobius(f):
-    return lambda x: exp_map0(f(log_map0(x)))
+def mobius(f, c):
+    return lambda x: exp_map0(f(log_map0(x, c)), c)
 
 
 def h2p(x):

@@ -30,8 +30,9 @@ def MAPE(y, y_pred, reduction='mean'):
         return s
 
 
-def hyperbolic_dist_np(x, y):
-    mobadd = mobius_addition_np(-x, y)
+def hyperbolic_dist_np(x, y, c):
+    mobadd = mobius_addition_np(-x, y, c)
     d = np.linalg.norm(mobadd)
-    d = 1 - 1e-8 if d > 1 - 1e-8 else d
-    return 2 * np.arctanh(d)
+    max_radius = 1/c
+    d = max_radius - 1e-8 if d > max_radius - 1e-8 else d
+    return 2/np.sqrt(c) * np.arctanh(np.sqrt(c) * d)

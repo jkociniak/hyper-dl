@@ -19,7 +19,7 @@ def build_datasets(seed, n_samples, dim, eps, transform_dim, curv, datasets_fold
         'test': int(n_samples - n_train - n_val)
     }
 
-    datasets = {name: HyperbolicPairsDataset(size, dim, eps, transform_dim)
+    datasets = {name: HyperbolicPairsDataset(size, dim, eps, curv, transform_dim)
                 for name, size in sizes.items()}
 
     filename = f'dim={dim},n_samples={n_samples},eps={eps},transform_dim={transform_dim},curv={curv},seed={seed}.pkl'
@@ -42,7 +42,7 @@ def build_dataloader(name, dataset, bs, num_workers):
 
 
 class HyperbolicPairsDataset(Dataset):
-    def __init__(self, n_samples, dim, eps, curv=1, transform_dim=None):
+    def __init__(self, n_samples, dim, eps, curv, transform_dim=None):
         self.n_samples = n_samples
         self.dim = dim
         self.eps = eps
@@ -62,7 +62,7 @@ class HyperbolicPairsDataset(Dataset):
         norms = torch.linalg.norm(directions, axis=2, keepdims=True)
         unit_directions = torch.divide(directions, norms)
 
-        max_radius = 1 - self.eps
+        max_radius = 1/self.curv - self.eps
         distribution = Uniform(0, max_radius)
         radii = distribution.sample((self.n_samples, 2, 1))
         transformed_radii = torch.pow(radii, 1 / self.transform_dim)
@@ -76,7 +76,7 @@ class HyperbolicPairsDataset(Dataset):
 
         def hyperbolic_dist_wrapper(row):
             row_2d = np.reshape(row, (2, self.dim))  # unflatten
-            return hyperbolic_dist_np(row_2d[0], row_2d[1])  # compute the distance
+            return hyperbolic_dist_np(row_2d[0], row_2d[1], self.curv)  # compute the distance
 
         distances = np.apply_along_axis(hyperbolic_dist_wrapper, 1, pairs_reshaped)
         distances = distances.astype(np.float32)
