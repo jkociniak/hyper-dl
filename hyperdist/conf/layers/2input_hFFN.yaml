@@ -1,7 +1,0 @@
-name: DoubleInputHyperbolicFFN
-input_dim: 2
-hidden_dims: []
-output_dim: 2
-bias: False
-activation: None
-skips: False
