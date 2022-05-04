@@ -9,4 +9,3 @@ setuptools~=60.9.3
 seaborn~=0.11.2
 
 git+https://github.com/jkociniak/hypertorch.git
-hypertorch~=0.1
