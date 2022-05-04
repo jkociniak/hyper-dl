@@ -1,0 +1,4 @@
+name: ReduceLROnPlateau
+factor: 0.75
+verbose: True
+eps: 1.0e-7

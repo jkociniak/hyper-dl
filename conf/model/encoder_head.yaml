@@ -1,0 +1,15 @@
+defaults:
+    - /layers@encoder: 2input_hFFN
+    - /layers@head: eFFN
+
+name: EncoderHeadModel
+input_dim: 2
+inter_dim: 2
+
+encoder:
+    input_dim: ${..input_dim}
+    output_dim: ${..inter_dim}
+
+head:
+    input_dim: ${..inter_dim}
+    output_dim: 1

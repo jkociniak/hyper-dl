@@ -1,0 +1,55 @@
+######################### DEFAULTS #########################
+
+defaults:
+    - model: encoder_head
+    - optimizer: sgd
+    - scheduler: plateau
+    - optimizer@r_optimizer: rsgd
+    - neptune_cfg: jk
+    - _self_
+
+########################### HYDRA ############################
+
+hydra:
+  job:
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed
+
+  run:
+    dir: experiments/single/${now:%Y-%m-%d}/${now:%H:%M:%S}
+
+  sweep:
+    dir: experiments/multi/${hydra.job.name}/${now:%Y-%m-%d_%H:%M:%S}
+    subdir: ${hydra.job.override_dirname}/seed=${seed}
+
+
+####################### TRAINING PARAMS ##########################
+
+epochs: 200
+seed: 777  # seed for training the model
+bs: 256  # batch size
+num_workers: 2
+
+####################### DATASET PARAMS ###########################
+
+dataset_params:
+  seed: 777  # dataset generation seed
+  n_samples: 1.0e+5  # it will be divided in 70:20:10 ratio
+  dim: 2
+  eps: 1.0e-2
+  curv: 1
+  transform_dim: ${.dim}
+
+########################## OTHER DEFINITIONS ############################
+
+model:
+    input_dim: ${..dataset_params.dim}
+
+r_scheduler:
+    name: None
+
+metrics:
+    loss: MSE
+    additional: [MSE, MAPE]
