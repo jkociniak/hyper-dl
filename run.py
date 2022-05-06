@@ -2,15 +2,10 @@ import hydra
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from config import run_training
-from data import build_loaders
+from data import build_loaders, build_dataset_path
 from plot import setup_dirs, dump_results
 import os
 import pickle
-
-
-def build_dataset_path(seed, n_samples, dim, eps, curv, transform_dim):
-    template = 'dim={},n_samples={},eps={},transform_dim={},curv={},seed={}.pkl'
-    return template.format(int(dim), int(n_samples), eps, transform_dim, curv, seed)
 
 
 @hydra.main(config_path='conf', config_name='config')

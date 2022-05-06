@@ -8,6 +8,11 @@ import pickle
 import os
 
 
+def build_dataset_path(seed, n_samples, dim, eps, curv, transform_dim):
+    template = 'dim={},n_samples={},eps={},transform_dim={},curv={},seed={}.pkl'
+    return template.format(int(dim), int(n_samples), eps, transform_dim, curv, seed)
+
+
 def build_datasets(seed, n_samples, dim, eps, transform_dim, curv, datasets_folder):
     reset_rngs(seed)  # reset RNGs before dataset generation
 
@@ -22,9 +27,7 @@ def build_datasets(seed, n_samples, dim, eps, transform_dim, curv, datasets_fold
     datasets = {name: HyperbolicPairsDataset(size, dim, eps, curv, transform_dim)
                 for name, size in sizes.items()}
 
-    n_samples = int(n_samples)
-
-    filename = f'dim={dim},n_samples={n_samples},eps={eps},transform_dim={transform_dim},curv={curv},seed={seed}.pkl'
+    filename = build_dataset_path(seed, n_samples, dim, eps, curv, transform_dim)
     filepath = os.path.join(datasets_folder, filename)
     with open(filepath, 'wb') as f:
         pickle.dump(datasets, f)
