@@ -22,6 +22,8 @@ def build_datasets(seed, n_samples, dim, eps, transform_dim, curv, datasets_fold
     datasets = {name: HyperbolicPairsDataset(size, dim, eps, curv, transform_dim)
                 for name, size in sizes.items()}
 
+    n_samples = int(n_samples)
+
     filename = f'dim={dim},n_samples={n_samples},eps={eps},transform_dim={transform_dim},curv={curv},seed={seed}.pkl'
     filepath = os.path.join(datasets_folder, filename)
     with open(filepath, 'wb') as f:
