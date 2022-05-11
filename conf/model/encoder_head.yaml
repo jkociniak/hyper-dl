@@ -1,6 +1,6 @@
 defaults:
-    - /layers@encoder: 2input_hFFN
-    - /layers@head: eFFN
+    - encoder: 2input_hFFN
+    - head: eFFN
 
 name: EncoderHeadModel
 input_dim: 2

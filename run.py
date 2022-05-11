@@ -6,6 +6,7 @@ from data import build_loaders, build_dataset_path
 from plot import setup_dirs, dump_results
 import os
 import pickle
+import threading
 
 
 @hydra.main(config_path='conf', config_name='config')
@@ -25,9 +26,9 @@ def train(cfg: DictConfig) -> None:
     folder_names = set(datasets.keys()) | set(results.keys())
     base_dir = os.getcwd()
     setup_dirs(folder_names, base_dir)
-    dump_results(datasets, results, base_dir, run)
-    if run is not None:
-        run.stop()
+
+    dump_thread = threading.Thread(target=dump_results, args=(datasets, results, base_dir, run, cfg['plots']))
+    dump_thread.start()
 
 
 if __name__ == "__main__":
