@@ -7,9 +7,10 @@ class RiemannianSGD(Optimizer):
     """
     Implements Riemannian SGD.
     """
-    def __init__(self, params, lr=1e-3):
+    def __init__(self, params, lr=1e-3, curv=1):
         assert lr > 0
-        defaults = {'lr': lr}
+        assert curv > 0
+        defaults = {'lr': lr, 'curv': torch.tensor(curv)}
         super().__init__(params, defaults)
 
     def step(self, closure=None):
@@ -20,12 +21,13 @@ class RiemannianSGD(Optimizer):
 
         for group in self.param_groups:
             lr = group['lr']
+            curv = group['curv']
 
             for p in group['params']:
                 if p.grad is not None:
                     grad = p.grad
-                    riemannian_grad = grad.mul(1/(conformal_factor(p) ** 2))
-                    new_p = exp_map(p, -lr * riemannian_grad)
+                    riemannian_grad = grad.mul(1/(conformal_factor(p, curv) ** 2))
+                    new_p = exp_map(p, -lr * riemannian_grad, curv)
                     p.data.copy_(new_p)
 
         return loss

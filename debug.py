@@ -27,14 +27,19 @@ def train(cfg: DictConfig) -> None:
     results, run = run_training(loaders=loaders,
                                 cfg=cfg,
                                 **cfg)
-    folder_names = set(datasets.keys()) | set(results.keys())
-    base_dir = os.getcwd()
-    setup_dirs(folder_names, base_dir)
+    # folder_names = set(datasets.keys()) | set(results.keys())
+    # base_dir = os.getcwd()
+    # setup_dirs(folder_names, base_dir)
 
 
 if __name__ == "__main__":
     overrides = [
-        'epochs=5'
+        'num_workers=0',
+        #'~neptune_cfg',
+        'epochs=50',
+        'model/head=hyperbolic_dist',
+        'model.encoder.hidden_dims=[32,32]',
+        'model.encoder.bias=True'
     ]
 
     with initialize(config_path="conf"):

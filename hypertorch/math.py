@@ -12,6 +12,15 @@ def validate(x):  # ensure that x is not too close to 0
     return x + zeros
 
 
+def validate_norm(x):
+    zeros = torch.zeros_like(x)
+    ones = torch.ones_like(x)
+    x[x > 1] = 1
+    mask = torch.isclose(x, ones, atol=TOLERANCE_EPS, rtol=0)
+    zeros[mask] = STABILITY_EPS
+    return x - zeros
+
+
 def mobius_addition(x, y, c):
     dot_xy = torch.sum(x * y, dim=1, keepdim=True)
     dot_xx = torch.sum(x * x, dim=1, keepdim=True)
@@ -31,6 +40,7 @@ def mobius_addition_np(x, y, c):
 
 
 def exp_map(x, v, c):
+    validate(v)
     v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
     cf = conformal_factor(x, c)
     scalar_factor = torch.tanh(torch.sqrt(c) * cf * v_norm / 2) / (torch.sqrt(c) * v_norm)
@@ -47,6 +57,7 @@ def exp_map0(v, c):
 def log_map(x, y, c):
     v = mobius_addition(-x, y, c)
     v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
+    v_norm = validate_norm(v_norm)
     cf = conformal_factor(x, c)
     scalar_factor = 2 * torch.arctanh(torch.sqrt(c) * v_norm) / (torch.sqrt(c) * cf * v_norm)
     return scalar_factor * v
@@ -55,6 +66,7 @@ def log_map(x, y, c):
 def log_map0(y, c):
     y = validate(y)
     y_norm = torch.linalg.norm(y, dim=1, keepdim=True)
+    y_norm = validate_norm(y_norm)
     scalar_factor = torch.arctanh(torch.sqrt(c) * y_norm) / (torch.sqrt(c) * y_norm)
     return scalar_factor * y
 
