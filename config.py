@@ -37,7 +37,14 @@ def run_training(epochs,
     if neptune_cfg is not None:
         import neptune.new as neptune
         run = neptune.init(**neptune_cfg)
-        #str_config = convert_to_strings(cfg)
+        
+        for i, group in enumerate(optimizer.param_groups):
+            run[f'metrics/train/lr{i}'].log(group['lr'])
+        
+        if r_optimizer is not None:
+            for i, group in enumerate(r_optimizer.param_groups):
+                run[f'metrics/train/r_lr{i}'].log(group['lr'])
+        
         run['config'] = OmegaConf.to_container(cfg, resolve=True)
     else:
         run = None

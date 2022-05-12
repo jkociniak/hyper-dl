@@ -19,9 +19,15 @@ def train_loop(run, epochs, model, criterion, metrics, optimizer, scheduler, r_o
 
         if scheduler is not None:
             scheduler.step(val_loss)
+            if run is not None:
+                for i, group in enumerate(optimizer.param_groups):
+                    run[f'metrics/train/lr{i}'].log(group['lr'])
 
         if r_scheduler is not None:
             r_scheduler.step(val_loss)
+            if run is not None:
+                for i, group in enumerate(r_optimizer.param_groups):
+                    run[f'metrics/train/r_lr{i}'].log(group['lr'])
 
     print('Training finished')
 
