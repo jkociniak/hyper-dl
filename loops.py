@@ -53,12 +53,15 @@ def train(run, model, criterion, metrics_dict, optimizer, r_optimizer, loader, d
 
         n_samples += x1.size(dim=0)
 
-        optimizer.zero_grad()
+        if optimizer is not None:
+            optimizer.zero_grad()
         dist_pred = model(x1, x2)
         dist_pred = dist_pred.squeeze()
 
         batch_loss = criterion(dist_pred, dist)
-        batch_loss.backward()
+
+        if optimizer is not None or r_optimizer is not None:
+            batch_loss.backward()
 
         if optimizer is not None:
             optimizer.step()

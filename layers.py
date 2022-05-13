@@ -129,12 +129,17 @@ class DoubleInputEuclideanFFN(hnn.SemiRiemannianModule):
         return x
 
 
+def true_encoder(x, y):
+    return hmath.mobius_addition(-x, y, 1)
+
+
 name2layer = {
     'EuclideanFFN': EuclideanFFN,
     'DoubleInputEuclideanFFN': DoubleInputEuclideanFFN,
     'HyperbolicFFN': hnn.HyperbolicFFN,
     'DoubleInputHyperbolicFFN': hnn.DoubleInputHyperbolicFFN,
-    'hyperbolic_dist': lambda **kwargs: hmath.hyperbolic_dist  # to simulate class constructor
+    'true_head': lambda **kwargs: hmath.hyperbolic_dist,  # to simulate class constructor
+    'true_encoder': lambda **kwargs: true_encoder
 }
 
 
