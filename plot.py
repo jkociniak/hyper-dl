@@ -18,12 +18,14 @@ def dump_results(datasets, results, dir_path, run, plot):
         sns_plot.fig.savefig(path)
         return sns_plot.fig
 
-    set_names = ['train', 'val', 'test']
+    set_names = ['test']
     for set_name in set_names:
         res = results[set_name]
         results_name = 'results.csv'
         path = os.path.join(dir_path, set_name, results_name)
         res.to_csv(path, index=False)
+        if run is not None:
+            run[f'results/{set_name}/results'].upload(path)
 
         #data = datasets[set_name]
 

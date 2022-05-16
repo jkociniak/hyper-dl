@@ -35,11 +35,19 @@ def train(cfg: DictConfig) -> None:
 if __name__ == "__main__":
     overrides = [
         'num_workers=0',
-        #'~neptune_cfg',
-        'epochs=50',
-        'model/head=hyperbolic_dist',
-        'model.encoder.hidden_dims=[32,32]',
-        'model.encoder.bias=True'
+        'dataset_params.dim=2',
+        # '~neptune_cfg',
+        'epochs=200',
+        #'model=relu_d5_w320',
+        # 'scheduler.name=None',
+        'model/encoder=true_encoder',
+        'model/head=eFFN',
+        'model.head.hidden_dims=[320, 320]',
+        # 'model.encoder.hidden_dims=[32,32]',
+        # 'model.encoder.bias=True',
+        'bs=1024',
+        'optimizer.lr=0.004',
+        'r_optimizer.lr=0.008'
     ]
 
     with initialize(config_path="conf"):
