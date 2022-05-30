@@ -26,7 +26,6 @@ def train(cfg: DictConfig) -> None:
     folder_names = set(datasets.keys()) | set(results.keys())
     base_dir = os.getcwd()
     setup_dirs(folder_names, base_dir)
-
     dump_thread = threading.Thread(target=dump_results, args=(datasets, results, base_dir, run, cfg['plots']))
     dump_thread.start()
 

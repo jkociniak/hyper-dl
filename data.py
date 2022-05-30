@@ -3,17 +3,17 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torch.distributions.multivariate_normal import MultivariateNormal
 from torch.distributions.uniform import Uniform
-from utils import hyperbolic_dist_np, reset_rngs
+from utils import hyperbolic_dist_np, reset_rngs, hyperbolic_volume_inverse
 import pickle
 import os
 
 
-def build_dataset_path(seed, n_samples, dim, eps, curv, transform_dim):
-    template = 'dim={},n_samples={},eps={},transform_dim={},curv={},seed={}.pkl'
-    return template.format(int(dim), int(n_samples), eps, transform_dim, curv, seed)
+def build_dataset_path(seed, n_samples, dim, curv, inverse_transform, min_r, max_r):
+    template = 'd={},ns={},c={},seed={},it={},minr={},maxr={}.pkl'
+    return template.format(int(dim), int(n_samples), curv, seed, inverse_transform, min_r, max_r)
 
 
-def build_datasets(seed, n_samples, dim, eps, transform_dim, curv, datasets_folder):
+def build_datasets(seed, n_samples, dim, curv, inverse_transform, min_r, max_r, datasets_folder):
     reset_rngs(seed)  # reset RNGs before dataset generation
 
     n_train, n_val = int(0.7 * n_samples), int(0.2 * n_samples)
@@ -24,10 +24,10 @@ def build_datasets(seed, n_samples, dim, eps, transform_dim, curv, datasets_fold
         'test': int(n_samples - n_train - n_val)
     }
 
-    datasets = {name: HyperbolicPairsDataset(size, dim, eps, curv, transform_dim)
+    datasets = {name: HyperbolicPairsDataset(size, dim, curv, inverse_transform, min_r, max_r)
                 for name, size in sizes.items()}
 
-    filename = build_dataset_path(seed, n_samples, dim, eps, curv, transform_dim)
+    filename = build_dataset_path(seed, n_samples, dim, curv, inverse_transform, min_r, max_r)
     filepath = os.path.join(datasets_folder, filename)
     with open(filepath, 'wb') as f:
         pickle.dump(datasets, f)
@@ -47,33 +47,66 @@ def build_dataloader(name, dataset, bs, num_workers):
 
 
 class HyperbolicPairsDataset(Dataset):
-    def __init__(self, n_samples, dim, eps, curv, transform_dim=None):
+    def __init__(self, n_samples, dim, curv, inverse_transform='euclidean', min_r=0.1, max_r=5.3):
+        print('Hello')
         self.n_samples = n_samples
         self.dim = dim
-        self.eps = eps
+        self.min_r = min_r
+        self.max_r = max_r
         self.curv = curv
-        self.transform_dim = dim
-        if transform_dim is not None:
-            self.transform_dim = transform_dim
+        self.inverse_transform = inverse_transform
+
         self.pairs = self.generate_hyperbolic_pairs()
+        print('Generated pairs')
         self.distances = self.compute_distances()
+        print('Computed dists')
 
     def generate_hyperbolic_pairs(self):
+        # we want to sample uniformly on either Euclidean or hyperbolic disk of radius r
+        # 1. sample direction (uniform sampling on n-dimensional unit sphere)
+        # 2. sample norm (in a way that ensures uniform distribution on given space)
+        # 3. scale the direction vector by norm
+
+        # 1. sampling direction
+        # direction is going to be sampled from multivariate normal distribution
         mean = torch.zeros(self.dim)
         cov = torch.eye(self.dim)
         distribution = MultivariateNormal(mean, cov)
         directions = distribution.sample((self.n_samples, 2))
 
+        # we normalize directions to be unit vectors
         norms = torch.linalg.norm(directions, axis=2, keepdims=True)
         unit_directions = torch.divide(directions, norms)
 
-        max_radius = 1/self.curv - self.eps
-        distribution = Uniform(0, max_radius)
-        radii = distribution.sample((self.n_samples, 2, 1))
-        transformed_radii = torch.pow(radii, 1 / self.transform_dim)
 
-        pairs = unit_directions * transformed_radii
-        return pairs
+        # if self.max_norm == 'fixed':
+        #     max_radius = 1/self.curv - self.eps
+        # elif self.max_norm == 'proportional':
+        #     max_radius = 1/self.curv * (1 - self.eps)
+        # else:
+        #     raise ValueError('incorrect value of max_norm setting (must be "fixed" or "proportional")')
+
+        # 2. sampling norm
+        # sample from uniform distribution on (0, 1)
+        distribution = Uniform(0, 1)
+        radii = distribution.sample((self.n_samples, 2, 1))
+
+        # transform the sampled radius with proper cdf
+        # inverse transform used for sampling, must be normalized to have domain [0, 1]
+        if self.inverse_transform == 'euclidean':
+            # p = A(r) - A(r_min)/A(r_max) - A(r_min) = r^n - r_min^n / r_max^n - r_min^n
+            # so inverse is r = (p * (r_max^n - r_min^n) + r_min^n)^{1/n}
+            inverse_transform = lambda p: torch.pow(
+                p * (self.max_r ** self.dim - self.min_r ** self.dim) + self.min_r ** self.dim, 1 / self.dim)
+        elif self.inverse_transform == 'hyperbolic':
+            # we define hyperbolic volume inverse in separate function
+            inverse_transform = hyperbolic_volume_inverse(self.dim, self.curv, self.min_r, self.max_r)
+        else:
+            raise ValueError('incorrect value of inverse_transform setting (must be "euclidean" or "proportional")')
+
+        pairs = unit_directions * inverse_transform(radii)
+
+        return pairs.float()
 
     def compute_distances(self):
         # based on https://stackoverflow.com/questions/46084656/numpy-apply-along-n-spaces

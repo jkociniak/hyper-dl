@@ -31,4 +31,3 @@ class RiemannianSGD(Optimizer):
                     p.data.copy_(new_p)
 
         return loss
-

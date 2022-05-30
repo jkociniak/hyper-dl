@@ -15,7 +15,7 @@ def validate(x):  # ensure that x is not too close to 0
 def validate_norm(x):
     zeros = torch.zeros_like(x)
     ones = torch.ones_like(x)
-    x[x > 1] = 1
+    x[x >= 1] = 1
     mask = torch.isclose(x, ones, atol=TOLERANCE_EPS, rtol=0)
     zeros[mask] = STABILITY_EPS
     return x - zeros

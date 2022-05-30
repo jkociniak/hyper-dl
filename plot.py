@@ -43,6 +43,7 @@ def dump_results(datasets, results, dir_path, run, plot):
             fig = plot_pairplot(res, plot_path)
             if run is not None:
                 run[f'results/{set_name}/pairplot'] = File.as_html(fig)
+
     if run is not None:
         run.stop()
 
