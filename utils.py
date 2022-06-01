@@ -6,6 +6,7 @@ from scipy.interpolate import interp1d
 import random
 import os
 
+
 def reset_rngs(seed):
     torch.manual_seed(seed)
     random.seed(seed)
@@ -33,10 +34,24 @@ def MAPE(y, y_pred, reduction='mean'):
 
 
 def hyperbolic_dist_np(x, y, c):
+    assert c > 0
+    max_radius = 1 / np.sqrt(c)
+    assert np.linalg.norm(x) < max_radius
+    assert np.linalg.norm(y) < max_radius
+
     mobadd = mobius_addition_np(-x, y, c)
     d = np.linalg.norm(mobadd)
-    max_radius = 1/c
+
+    # add epsilon to handle inaccurate computations
+    assert d.max() <= max_radius + 1e9
+
+    # clipping
     d = max_radius - 1e-8 if d > max_radius - 1e-8 else d
+
+    # make runtime warnings errors
+    import warnings
+    warnings.simplefilter('error')
+
     return 2/np.sqrt(c) * np.arctanh(np.sqrt(c) * d)
 
 
@@ -46,23 +61,51 @@ def hyperbolic_volume_inverse(n, c, min_r=1e-3, max_r=5.31, n_samples=100000):
     # rs_med = np.linspace(11e-3, 21e-3, 3*n_samples)
     # rs_big = np.linspace(21e-3, max_r, 3*n_samples)
     # rs = np.concatenate((rs_small, rs_med, rs_big))
+
+    # evenly spaced nodes (consider other?)
     rs = np.linspace(min_r, max_r, n_samples)
+
+    # range of volumes
     max_v = hyperbolic_volume(n, c, max_r)
     min_v = hyperbolic_volume(n, c, min_r)
+
+    # we have to normalize the volumes to be from (0, 1) range
     vs = np.array([(hyperbolic_volume(n, c, r) - min_v)/(max_v - min_v) for r in rs])
     _, idx = np.unique(vs, return_index=True)
-    return interp1d(vs[idx], rs[idx], kind='linear')
+
+    # interpolate inverse of hyperbolic volume
+    inv_interp = interp1d(vs[idx], rs[idx], kind='linear')
+
+    # compose with hyperbolic to euclidean radius transformation
+    return lambda v: hr2er(inv_interp(v), c)
 
 
-def e(n):
+# volume of n-dimensional euclidean sphere
+def eucl_sphere(n):
     num = 2 * np.pi ** ((n+1)/2)
     denom = gamma((n+1)/2)
     return num/denom
 
 
+def er2hr(r, c):
+    # rh = 2\sqrt(c) * arctgh(sqrt(c) * re)
+    max_radius = 1/np.sqrt(c)
+    assert r < max_radius
+    return 2*np.sqrt(c) * np.arctanh(np.sqrt(c) * r)
+
+
+def hr2er(r, c):
+    # solve rh = 2\sqrt(c) * arctgh(sqrt(c) * re)
+    # rh*sqrt(c)/2 = arctgh(sqrt(c) * re)
+    # tgh(rh*sqrt(c)/2) = sqrt(c) * re
+    # re = tgh(rh*sqrt(c)/2)/sqrt(c)
+    assert r.min() > 0
+    return np.tanh(r * np.sqrt(c) / 2) / np.sqrt(c)
+
+
 def hyperbolic_volume(n, c, r):
     # n: dimension of the hyperbolic space
-    # r: radius of the sphere
+    # r: hyperbolic radius of the sphere
     # c: curvature of the hyperbolic space
     #
     # we want to compute V_{n, c}(r) = e_{n-1} \int_0^r (sinh(t*sqrt(c))/sqrt(c))^{n-1} dt
@@ -88,4 +131,4 @@ def hyperbolic_volume(n, c, r):
             sum += sign * coeff * np.expm1((2*k - (n-1)) * r * c) / ((2*k - (n-1)) * c)
         else:
             sum += sign * coeff * r
-    return e(n-1) * sum / ((2*c)**(n-1))
+    return eucl_sphere(n-1) * sum / ((2*c)**(n-1))

@@ -24,11 +24,15 @@ def build_datasets(seed, n_samples, dim, curv, inverse_transform, min_r, max_r, 
         'test': int(n_samples - n_train - n_val)
     }
 
-    datasets = {name: HyperbolicPairsDataset(size, dim, curv, inverse_transform, min_r, max_r)
-                for name, size in sizes.items()}
+    print('Generating datasets...')
+    datasets = {}
+    for name, size in sizes.items():
+        print(f'Processing {name} set of size {size}...')
+        datasets[name] = HyperbolicPairsDataset(size, dim, curv, inverse_transform, min_r, max_r)
 
     filename = build_dataset_path(seed, n_samples, dim, curv, inverse_transform, min_r, max_r)
     filepath = os.path.join(datasets_folder, filename)
+    print(filepath)
     with open(filepath, 'wb') as f:
         pickle.dump(datasets, f)
 
@@ -48,7 +52,6 @@ def build_dataloader(name, dataset, bs, num_workers):
 
 class HyperbolicPairsDataset(Dataset):
     def __init__(self, n_samples, dim, curv, inverse_transform='euclidean', min_r=0.1, max_r=5.3):
-        print('Hello')
         self.n_samples = n_samples
         self.dim = dim
         self.min_r = min_r
