@@ -90,8 +90,8 @@ def eucl_sphere(n):
 def er2hr(r, c):
     # rh = 2\sqrt(c) * arctgh(sqrt(c) * re)
     max_radius = 1/np.sqrt(c)
-    assert r < max_radius
-    return 2*np.sqrt(c) * np.arctanh(np.sqrt(c) * r)
+    assert (r < max_radius).all()
+    return 2/np.sqrt(c) * np.arctanh(np.sqrt(c) * r)
 
 
 def hr2er(r, c):

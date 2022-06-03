@@ -28,11 +28,12 @@ def build_datasets(seed, n_samples, dim, curv, inverse_transform, min_r, max_r, 
     datasets = {}
     for name, size in sizes.items():
         print(f'Processing {name} set of size {size}...')
-        datasets[name] = HyperbolicPairsDataset(size, dim, curv, inverse_transform, min_r, max_r)
+        dataset = HyperbolicPairsDataset(size, dim, curv, inverse_transform, min_r, max_r)
+        datasets[name] = dataset
 
     filename = build_dataset_path(seed, n_samples, dim, curv, inverse_transform, min_r, max_r)
     filepath = os.path.join(datasets_folder, filename)
-    print(filepath)
+    print(f'Saving datasets at path {filepath}')
     with open(filepath, 'wb') as f:
         pickle.dump(datasets, f)
 

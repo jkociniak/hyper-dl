@@ -1,6 +1,12 @@
 import os
 from neptune.new.types import File
-# NO IMPORT OF MATPLOTLIB HERE TO AVOID BUGS
+import seaborn as sns
+
+
+def plot_pairplot(res, path):
+    sns_plot = sns.pairplot(data=res, height=3, aspect=1)
+    sns_plot.fig.savefig(path)
+    return sns_plot.fig
 
 
 def setup_dirs(names, dir_path):
@@ -9,15 +15,7 @@ def setup_dirs(names, dir_path):
         os.mkdir(path)
 
 
-def dump_results(datasets, results, dir_path, run, plot):
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    def plot_pairplot(res, path):
-        sns_plot = sns.pairplot(data=res, height=3, aspect=1)
-        sns_plot.fig.savefig(path)
-        return sns_plot.fig
-
+def dump_results(results, dir_path, run, plot):
     set_names = ['test']
     for set_name in set_names:
         res = results[set_name]
