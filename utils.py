@@ -103,7 +103,7 @@ def hr2er(r, c):
     return np.tanh(r * np.sqrt(c) / 2) / np.sqrt(c)
 
 
-def hyperbolic_volume(n, c, r):
+def hyperbolic_volume(n, c, r, sphere_factor=False):
     # n: dimension of the hyperbolic space
     # r: hyperbolic radius of the sphere
     # c: curvature of the hyperbolic space
@@ -131,4 +131,8 @@ def hyperbolic_volume(n, c, r):
             sum += sign * coeff * np.expm1((2*k - (n-1)) * r * c) / ((2*k - (n-1)) * c)
         else:
             sum += sign * coeff * r
-    return eucl_sphere(n-1) * sum / ((2*c)**(n-1))
+
+    if sphere_factor:
+        return eucl_sphere(n-1) * sum / ((2*c)**(n-1))
+    else:
+        return sum

@@ -106,13 +106,21 @@ class HyperbolicPairsDataset(Dataset):
             # we define hyperbolic volume inverse in separate function
             inverse_transform = hyperbolic_volume_inverse(self.dim, self.curv, self.min_r, self.max_r)
         else:
-            raise ValueError('incorrect value of inverse_transform setting (must be "euclidean" or "proportional")')
+            raise ValueError('incorrect value of inverse_transform setting (must be "euclidean" or "hyperbolic")')
 
         pairs = unit_directions * inverse_transform(radii)
 
         return pairs.float()
 
     def compute_distances(self):
+        if self.inverse_transform == 'euclidean':
+            return self.compute_edist()
+        elif self.inverse_transform == 'hyperbolic':
+            return self.compute_hdist()
+        else:
+            raise ValueError('incorrect value of inverse_transform setting (must be "euclidean" or "hyperbolic")')
+
+    def compute_hdist(self):
         # based on https://stackoverflow.com/questions/46084656/numpy-apply-along-n-spaces
         pairs_reshaped = np.reshape(self.pairs.numpy(), (self.n_samples, 2 * self.dim))  # flatten the two last axes
 
@@ -123,6 +131,10 @@ class HyperbolicPairsDataset(Dataset):
         distances = np.apply_along_axis(hyperbolic_dist_wrapper, 1, pairs_reshaped)
         distances = distances.astype(np.float32)
         return torch.from_numpy(distances)
+
+    def compute_edist(self):
+        diff = self.pairs[:, 0, :] - self.pairs[:, 1, :]
+        return torch.linalg.norm(diff, dim=1, keepdim=False)
 
     def __len__(self):
         return self.n_samples
