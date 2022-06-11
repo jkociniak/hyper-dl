@@ -57,7 +57,7 @@ class HyperbolicPairsDataset(Dataset):
         self.dim = dim
         self.min_r = min_r
         self.max_r = max_r
-        self.curv = curv
+        self.curv = curv if inverse_transform == 'hyperbolic' else 0
         self.inverse_transform = inverse_transform
 
         self.pairs = self.generate_hyperbolic_pairs()
