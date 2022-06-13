@@ -48,6 +48,7 @@ dataset_params:
 
 model:
     input_dim: ${..dataset_params.dim}
+    inter_dim: ${..dataset_params.dim}
 
 r_scheduler:
     name: None

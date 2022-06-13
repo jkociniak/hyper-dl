@@ -5,6 +5,7 @@ from scipy.special import gamma
 from scipy.interpolate import interp1d
 import random
 import os
+import matplotlib.pyplot as plt
 
 
 def reset_rngs(seed):
@@ -136,3 +137,24 @@ def hyperbolic_volume(n, c, r, sphere_factor=False):
         return eucl_sphere(n-1) * sum / ((2*c)**(n-1))
     else:
         return sum
+
+
+def draw_bounds(ax, r_min, r_max, c):
+    z = (0, 0)
+    if c > 0:
+        # bounds for hyperbolic space
+        max_er = hr2er(np.array([r_max]), c)
+        #print(max_er)
+        min_er = hr2er(np.array([r_min]), c)
+        #print(min_er)
+
+        max_circle_h = plt.Circle(z, max_er, color='r', fill=False)
+        min_circle_h = plt.Circle(z, min_er, color='r', fill=False)
+        ax.add_patch(max_circle_h)
+        ax.add_patch(min_circle_h)
+    else:
+        # bounds for eucl space
+        max_circle_e = plt.Circle(z, 0.99, color='r', fill=False)
+        min_circle_e = plt.Circle(z, 0.1, color='r', fill=False)
+        ax.add_patch(max_circle_e)
+        ax.add_patch(min_circle_e)
