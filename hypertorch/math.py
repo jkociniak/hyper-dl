@@ -1,24 +1,33 @@
 import torch
 import numpy as np
 
-TOLERANCE_EPS = 1e-7
-STABILITY_EPS = 1e-6
+TOLERANCE_EPS = 1e-8
+STABILITY_EPS = 1e-5
 
 
 def validate(x):  # ensure that x is not too close to 0
     zeros = torch.zeros_like(x)
     mask = torch.isclose(x, zeros, atol=TOLERANCE_EPS, rtol=0)
-    zeros[mask] = STABILITY_EPS
+    zeros[mask] = TOLERANCE_EPS
     return x + zeros
 
 
-def validate_norm(x):
-    zeros = torch.zeros_like(x)
-    ones = torch.ones_like(x)
-    x[x >= 1] = 1
-    mask = torch.isclose(x, ones, atol=TOLERANCE_EPS, rtol=0)
-    zeros[mask] = STABILITY_EPS
-    return x - zeros
+def hr2er(r, c):
+    # solve rh = 2\sqrt(c) * arctgh(sqrt(c) * re)
+    # rh*sqrt(c)/2 = arctgh(sqrt(c) * re)
+    # tgh(rh*sqrt(c)/2) = sqrt(c) * re
+    # re = tgh(rh*sqrt(c)/2)/sqrt(c)
+    assert r.min() > 0
+    return np.tanh(r * np.sqrt(c) / 2) / np.sqrt(c)
+
+
+def project_to_ball(v, c):
+    norms = torch.linalg.norm(v, dim=1, keepdim=True)
+    max_radius = hr2er(torch.tensor(2), c)
+    mask = norms > max_radius
+    rescale_factors = max_radius / norms
+    rescale_factors[~mask] = 1
+    return v * rescale_factors.expand(v.size())
 
 
 def mobius_addition(x, y, c):
@@ -27,7 +36,8 @@ def mobius_addition(x, y, c):
     dot_yy = torch.sum(y * y, dim=1, keepdim=True)
     numerator = (1 + 2 * c * dot_xy + c * dot_yy) * x + (1 - c * dot_xx) * y
     denominator = 1 + 2 * c * dot_xy + c * c * dot_xx * dot_yy
-    return numerator / denominator
+    res = numerator / denominator
+    return project_to_ball(res, c)
 
 
 def mobius_addition_np(x, y, c):
@@ -57,7 +67,6 @@ def exp_map0(v, c):
 def log_map(x, y, c):
     v = mobius_addition(-x, y, c)
     v_norm = torch.linalg.norm(v, dim=1, keepdim=True)
-    v_norm = validate_norm(v_norm)
     cf = conformal_factor(x, c)
     scalar_factor = 2 * torch.arctanh(torch.sqrt(c) * v_norm) / (torch.sqrt(c) * cf * v_norm)
     return scalar_factor * v
@@ -66,7 +75,6 @@ def log_map(x, y, c):
 def log_map0(y, c):
     y = validate(y)
     y_norm = torch.linalg.norm(y, dim=1, keepdim=True)
-    y_norm = validate_norm(y_norm)
     scalar_factor = torch.arctanh(torch.sqrt(c) * y_norm) / (torch.sqrt(c) * y_norm)
     return scalar_factor * y
 

@@ -2,7 +2,8 @@ import torch
 import pandas as pd
 from collections import defaultdict
 from neptune.new.types import File
-
+from utils import plot_grad_flow
+import matplotlib.pyplot as plt
 
 def train_loop(run, epochs, model, criterion, metrics, optimizer, scheduler, r_optimizer, r_scheduler, loaders):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -11,6 +12,9 @@ def train_loop(run, epochs, model, criterion, metrics, optimizer, scheduler, r_o
     model.to(device)
 
     for epoch in range(epochs):
+        if epoch == 3:
+            print('debug')
+
         train_loss = train(run, model, criterion, metrics, optimizer, r_optimizer, loaders['train'], device)
         print(f'[{epoch + 1}] train loss (mean of batch losses): {train_loss}')
 
@@ -58,10 +62,17 @@ def train(run, model, criterion, metrics_dict, optimizer, r_optimizer, loader, d
         dist_pred = model(x1, x2)
         dist_pred = dist_pred.squeeze()
 
+        if dist_pred.isnan().any():
+            raise RuntimeError('NaN detected in predictions')
+
         batch_loss = criterion(dist_pred, dist)
+
+        if batch_loss.isnan().item():
+            raise RuntimeError('NaN detected after loss computation')
 
         if optimizer is not None or r_optimizer is not None:
             batch_loss.backward()
+            #plot_grad_flow(model.named_parameters())
 
         if optimizer is not None:
             optimizer.step()
@@ -76,6 +87,8 @@ def train(run, model, criterion, metrics_dict, optimizer, r_optimizer, loader, d
 
     loss /= n_samples
     metrics = {name: val / n_samples for name, val in metrics.items()}
+
+    plt.show()
 
     if run is not None:
         run['metrics/train/loss'].log(loss)

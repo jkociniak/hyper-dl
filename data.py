@@ -38,17 +38,17 @@ def build_datasets(seed, n_samples, dim, curv, inverse_transform, min_r, max_r, 
         pickle.dump(datasets, f)
 
 
-def build_loaders(datasets, bs, num_workers):
-    loaders = {name: build_dataloader(name, dataset, bs, num_workers)
+def build_loaders(datasets, bs, num_workers, pin_memory):
+    loaders = {name: build_dataloader(name, dataset, bs, num_workers, pin_memory)
                for name, dataset in datasets.items()}
     return loaders
 
 
-def build_dataloader(name, dataset, bs, num_workers):
+def build_dataloader(name, dataset, bs, num_workers, pin_memory):
     if name == 'train':
-        return DataLoader(dataset, batch_size=bs, shuffle=True, num_workers=num_workers, pin_memory=True)
+        return DataLoader(dataset, batch_size=bs, shuffle=True, num_workers=num_workers, pin_memory=pin_memory)
     else:
-        return DataLoader(dataset, batch_size=bs, shuffle=False, num_workers=num_workers, pin_memory=True)
+        return DataLoader(dataset, batch_size=bs, shuffle=False, num_workers=num_workers, pin_memory=pin_memory)
 
 
 class HyperbolicPairsDataset(Dataset):

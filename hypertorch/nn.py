@@ -31,8 +31,11 @@ class MobiusLinear(SemiRiemannianModule):
         self.bias = RParameter(torch.empty((1, out_features))) if bias else None
         self.curv = curv
         if self.bias is not None:
-            bound = 1 / math.sqrt(in_features) if in_features > 0 else 0
+            bound = curv / torch.sqrt(torch.tensor(in_features * out_features)) if in_features > 0 else 0
             nn.init.uniform_(self.bias, -bound, bound)
+            with torch.no_grad():
+                #self.bias.data = exp_map0(self.bias.data, curv)
+                print(f'Initialized bias as {self.bias} within bound {bound}')
 
     def forward(self, x):
         x = log_map0(x, self.curv)
@@ -54,8 +57,11 @@ class HyperbolicConcat(SemiRiemannianModule):
         self.bias = RParameter(torch.empty(1, out_features)) if bias else None
         if self.bias is not None:
             in_dim = sum(in_features)
-            bound = 1 / math.sqrt(in_dim) if in_dim > 0 else 0
+            bound = curv / torch.sqrt(torch.tensor(in_dim * out_features)) if in_dim > 0 else 0
             nn.init.uniform_(self.bias, -bound, bound)
+            with torch.no_grad():
+                #self.bias.data = exp_map0(self.bias.data, curv)
+                print(f'Initialized bias as {self.bias} within bound {bound}')
 
     def forward(self, x1, x2):
         x1 = self.mfc1(x1)
@@ -198,6 +204,8 @@ class DoubleInputHyperbolicFFN(SemiRiemannianModule):
 
     def forward(self, x1, x2):
         x = self.concat_layer(x1, x2)
+
+
         x = self.ffn(x)
         return x
 

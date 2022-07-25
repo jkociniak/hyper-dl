@@ -11,9 +11,9 @@ def generate_datasets(cfg: DictConfig) -> None:
 
 if __name__ == "__main__":
     overrides = [
-        'dim=16',
+        'dim=2',
         'inverse_transform=hyperbolic',
-        'curv=6'
+        'curv=0.25'
     ]
 
     with initialize(config_path="conf"):

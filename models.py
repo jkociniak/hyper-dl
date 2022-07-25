@@ -1,6 +1,12 @@
 from hypertorch.nn import DoubleInputHyperbolicFFN, SemiRiemannianModule
 from layers import DoubleInputEuclideanFFN, build_layer
-# from hypertorch.math import exp_map0, log_map0
+from hypertorch.math import exp_map0, log_map0
+import torch
+
+
+def isfinite_check(var, layer):
+    if not var.isfinite().all():
+        raise RuntimeError(f'Invalid value (inf/-inf/nan) detected after {layer}')
 
 
 class HyperbolicFFNModel(DoubleInputHyperbolicFFN):
@@ -41,6 +47,12 @@ class EncoderHeadModel(SemiRiemannianModule):
 
         e = self.encoder(x1, x2)
 
+        isfinite_check(e, 'encoder')
+
+        e = log_map0(e, torch.tensor(1))
+
+        isfinite_check(e, 'log map')
+
         # # should I go back into tangent space?
         # # We start with hyperbolic input. If
         # if isinstance(self.encoder, EuclideanFFN) and isinstance(self.head, HyperbolicFFN):
@@ -51,6 +63,7 @@ class EncoderHeadModel(SemiRiemannianModule):
         #     e = exp_map0(e)
 
         d = self.head(e)
+
         d = d.squeeze()
         return d
 

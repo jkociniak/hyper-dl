@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.optim as optim
 import hypertorch.optim as roptim
+import neptune.new as neptune
 
 from models import build_model
 from loops import train_loop
@@ -35,7 +36,6 @@ def run_training(epochs,
     r_scheduler = build_r_scheduler(r_optimizer, **r_scheduler)
 
     if neptune_cfg is not None:
-        import neptune.new as neptune
         run = neptune.init(**neptune_cfg)
 
         if optimizer is not None:

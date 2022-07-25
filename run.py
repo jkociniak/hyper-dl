@@ -7,6 +7,7 @@ from plot import setup_dirs, dump_results
 import os
 import pickle
 import threading
+import warnings
 
 
 @hydra.main(config_path='conf', config_name='config')
@@ -30,8 +31,9 @@ def train(cfg: DictConfig) -> None:
             datasets = pickle.load(f)
         print('Successfully loaded dataset')
 
+    warnings.simplefilter('default')  # for building dataset we had warnings=errors, now we disable it
     loaders = build_loaders(datasets, cfg['bs'], cfg['num_workers'])
-
+    print('hello')
     results, run = run_training(loaders=loaders,
                                 cfg=cfg,
                                 **cfg)
